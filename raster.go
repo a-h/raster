@@ -41,9 +41,14 @@ func DrawDisc(img *image.RGBA, x, y int, radius int, c color.RGBA) {
 // DrawLine draws a line circle onto the image starting at the fromX and fromY coordinates to the
 // toX, toY coordinates.
 func DrawLine(img *image.RGBA, fromX, fromY int, toX, toY int, c color.RGBA) {
+	// We're moving from fromX to toX, so make sure they're in the right order.
+	if toX < fromX {
+		toX, toY, fromX, fromY = fromX, fromY, toX, toY
+	}
+
 	// Vertical line.
 	if fromX == toX {
-		for y := fromY; y < toY; y++ {
+		for y := fromY; y <= toY; y++ {
 			img.Set(fromX, y, c)
 		}
 		return
@@ -51,29 +56,20 @@ func DrawLine(img *image.RGBA, fromX, fromY int, toX, toY int, c color.RGBA) {
 
 	// Horizontal line.
 	if fromY == toY {
-		for x := fromX; x < toX; x++ {
+		for x := fromX; x <= toX; x++ {
 			img.Set(x, fromY, c)
 		}
 		return
 	}
 
 	// It's a slope.
-	// We're moving from fromX to toX, so make sure they're in the right order.
-	if toX < fromX {
-		toX, toY, fromX, fromY = fromX, fromY, toX, toY
-	}
-
-	var b int
-	if toY < fromY {
-		b = img.Bounds().Dy()
-	}
-
 	rise := toY - fromY
 	run := toX - fromX
 	m := float64(rise) / float64(run)
 
+	y := float64(fromY)
 	for x := fromX; x <= toX; x++ {
-		y := (m * float64(x)) + float64(b)
 		img.Set(x, int(y), c)
+		y += m
 	}
 }
