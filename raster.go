@@ -136,6 +136,10 @@ func DrawFilledPolygon(img *image.RGBA, outline color.RGBA, fill color.RGBA, poi
 }
 
 func FillBetweenLines(img *image.RGBA, c color.Color, vertices []image.Point) {
+	vertexMap := make(map[image.Point]interface{})
+	for _, v := range vertices {
+		vertexMap[v] = false
+	}
 	// Use a Ray Casting algorithm, it won't work properly until I make sure that vertices are ignored.
 	// https://en.wikipedia.org/wiki/Point_in_polygon
 	for x := 0; x < img.Bounds().Dx(); x++ {
@@ -145,7 +149,8 @@ func FillBetweenLines(img *image.RGBA, c color.Color, vertices []image.Point) {
 				intersections := 0
 				for ix := x; ix < img.Bounds().Dx(); ix++ {
 					if !isTransparent(img.At(ix, y)) {
-						if !isVertex(image.Point{ix, y}, vertices) {
+						_, isVertex := vertexMap[image.Point{ix, y}]
+						if !isVertex {
 							intersections++
 						}
 					}
@@ -158,15 +163,6 @@ func FillBetweenLines(img *image.RGBA, c color.Color, vertices []image.Point) {
 			}
 		}
 	}
-}
-
-func isVertex(p image.Point, vertices []image.Point) bool {
-	for _, v := range vertices {
-		if v.X == p.X && v.Y == p.Y {
-			return true
-		}
-	}
-	return false
 }
 
 func DrawNonTransparent(dst *image.RGBA, r image.Rectangle, src *image.RGBA, sp image.Point) {
