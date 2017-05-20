@@ -41,20 +41,23 @@ func DrawDisc(img *image.RGBA, x, y int, radius int, c color.RGBA) {
 // DrawLine draws a line circle onto the image starting at the fromX and fromY coordinates to the
 // toX, toY coordinates.
 func DrawLine(img *image.RGBA, fromX, fromY int, toX, toY int, c color.RGBA) {
-	// We're moving from fromX to toX, so make sure they're in the right order.
-	if toX < fromX {
-		toX, toY, fromX, fromY = fromX, fromY, toX, toY
-	}
-
 	// Vertical line.
 	if fromX == toX {
+		if toY < fromY {
+			toX, toY, fromX, fromY = fromX, fromY, toX, toY
+		}
 		for y := fromY; y <= toY; y++ {
 			img.Set(fromX, y, c)
 		}
 		return
 	}
 
-	// Horizontal line.
+	// We're moving from fromX to toX, so make sure they're in the right order.
+	if toX < fromX {
+		toX, toY, fromX, fromY = fromX, fromY, toX, toY
+	}
+
+	// Horizontal line, we don't need floating points.
 	if fromY == toY {
 		for x := fromX; x <= toX; x++ {
 			img.Set(x, fromY, c)
@@ -84,6 +87,7 @@ func DrawPolygon(img *image.RGBA, c color.RGBA, points ...image.Point) {
 }
 
 func DrawFilledPolygon(img *image.RGBA, outline color.RGBA, fill color.RGBA, points ...image.Point) {
+	// Find the bounding box of the target area.
 	subImage := image.Rectangle{
 		Min: points[0],
 		Max: points[0],
@@ -108,40 +112,61 @@ func DrawFilledPolygon(img *image.RGBA, outline color.RGBA, fill color.RGBA, poi
 	// We can now print the image onto a canvas with a blank background.
 	offsetX := subImage.Min.X
 	offsetY := subImage.Min.Y
-	canvas := image.NewRGBA(image.Rect(0, 0, subImage.Max.X-offsetX, subImage.Max.Y-offsetY))
+	canvas := image.NewRGBA(image.Rect(0, 0, subImage.Max.X-offsetX+1, subImage.Max.Y-offsetY+1))
 
-	previousPoint := points[0]
-	for _, p := range points[1:] {
-		DrawLine(canvas, previousPoint.X-offsetX, previousPoint.Y-offsetY, p.X-offsetX, p.Y-offsetY, outline)
+	// Translate the points into the local space.
+	translatedPoints := make([]image.Point, len(points))
+	for i, p := range points {
+		translatedPoints[i] = image.Point{X: p.X - offsetX, Y: p.Y - offsetY}
+	}
+
+	previousPoint := translatedPoints[0]
+	for _, p := range translatedPoints[1:] {
+		DrawLine(canvas, previousPoint.X, previousPoint.Y, p.X, p.Y, outline)
 		previousPoint = p
 	}
-	DrawLine(canvas, previousPoint.X-offsetX, previousPoint.Y-offsetY, points[0].X-offsetX, points[0].Y-offsetY, outline)
+	DrawLine(canvas, previousPoint.X, previousPoint.Y, translatedPoints[0].X, translatedPoints[0].Y, outline)
 
-	FillBetweenLines(canvas, fill)
+	// Use a simple ray algorithm to fill.
+	FillBetweenLines(canvas, fill, translatedPoints)
 
 	// draw.Draw(img, subImage, canvas, image.Point{}, draw.Over)
 	// draw.DrawMask(img, subImage, canvas, image.Point{}, &image.Uniform{color.Transparent}, subImage.Min, draw.Over)
 	DrawNonTransparent(img, subImage, canvas, image.Point{})
 }
 
-func FillBetweenLines(img *image.RGBA, c color.Color) {
+func FillBetweenLines(img *image.RGBA, c color.Color, vertices []image.Point) {
 	// Use a Ray Casting algorithm, it won't work properly until I make sure that vertices are ignored.
 	// https://en.wikipedia.org/wiki/Point_in_polygon
-	for x := 0; x <= img.Bounds().Dx(); x++ {
-		for y := 0; y <= img.Bounds().Dy(); y++ {
-			intersections := 0
-			for ix := x; ix <= img.Bounds().Dx(); ix++ {
-				if !isTransparent(img.At(ix, y)) {
-					intersections++
+	for x := 0; x < img.Bounds().Dx(); x++ {
+		for y := 0; y < img.Bounds().Dy(); y++ {
+			if isTransparent(img.At(x, y)) {
+				// Look to the right edge to see if we're inside the polygon.
+				intersections := 0
+				for ix := x; ix < img.Bounds().Dx(); ix++ {
+					if !isTransparent(img.At(ix, y)) {
+						if !isVertex(image.Point{ix, y}, vertices) {
+							intersections++
+						}
+					}
 				}
-			}
 
-			if intersections%2 != 0 {
-				// We're inside the polygon.
-				img.Set(x, y, c)
+				if intersections%2 != 0 {
+					// We're inside the polygon.
+					img.Set(x, y, c)
+				}
 			}
 		}
 	}
+}
+
+func isVertex(p image.Point, vertices []image.Point) bool {
+	for _, v := range vertices {
+		if v.X == p.X && v.Y == p.Y {
+			return true
+		}
+	}
+	return false
 }
 
 func DrawNonTransparent(dst *image.RGBA, r image.Rectangle, src *image.RGBA, sp image.Point) {
