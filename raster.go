@@ -160,6 +160,21 @@ func FillBetweenLines(img *image.RGBA, c color.Color, outline LineMap) {
 		for x := 0; x < img.Bounds().Dx(); x++ {
 			lines, partOfLine := outline.Lookup[image.Point{x, y}]
 
+			// We're on a vertex if more than one line is writing to a point.
+			isVertex := len(lines) > 1
+
+			// If we're on a vertex, check to see if there are any more points to the right,
+			// or it doesn't count.
+			if isVertex {
+				partOfLine = false
+				for ix := x + 1; ix < img.Bounds().Dx(); ix++ {
+					if _, pointIsOutline := outline.Lookup[image.Point{ix, y}]; pointIsOutline {
+						partOfLine = true
+						break
+					}
+				}
+			}
+
 			if partOfLine {
 				stillOnEdge := arraysAreEqual(lines, currentLines)
 				// We're still on the edge we were previously on.
@@ -168,11 +183,11 @@ func FillBetweenLines(img *image.RGBA, c color.Color, outline LineMap) {
 				}
 				// We've hit a new section of intersection.
 				currentLines = lines
-				intersections += len(lines)
+				intersections++
 				continue
 			}
 
-			if intersections%2 != 0 {
+			if intersections%2 != 0 && !isVertex {
 				// We're inside the polygon.
 				img.Set(x, y, c)
 			}
@@ -181,6 +196,9 @@ func FillBetweenLines(img *image.RGBA, c color.Color, outline LineMap) {
 }
 
 func arraysAreEqual(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
 	bmap := make(map[int]interface{})
 	for _, b1 := range b {
 		bmap[b1] = struct{}{}
