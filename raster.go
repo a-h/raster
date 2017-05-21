@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"sort"
 )
 
 // DrawCircle draws a Circle onto the image at the x, y coordinates.
@@ -40,14 +41,22 @@ func DrawDisc(img *image.RGBA, x, y int, radius int, c color.RGBA) {
 
 // DrawLine draws a line circle onto the image starting at the fromX and fromY coordinates to the
 // toX, toY coordinates.
-func DrawLine(img *image.RGBA, fromX, fromY int, toX, toY int, c color.RGBA) {
+func DrawLine(img *image.RGBA, fromX, fromY int, toX, toY int, c color.RGBA) []image.Point {
+	points := Line(fromX, fromY, toX, toY)
+	for _, p := range points {
+		img.Set(p.X, p.Y, c)
+	}
+	return points
+}
+
+func Line(fromX, fromY int, toX, toY int) (points []image.Point) {
 	// Vertical line.
 	if fromX == toX {
 		if toY < fromY {
 			toX, toY, fromX, fromY = fromX, fromY, toX, toY
 		}
 		for y := fromY; y <= toY; y++ {
-			img.Set(fromX, y, c)
+			points = append(points, image.Point{fromX, y})
 		}
 		return
 	}
@@ -60,7 +69,7 @@ func DrawLine(img *image.RGBA, fromX, fromY int, toX, toY int, c color.RGBA) {
 	// Horizontal line, we don't need floating points.
 	if fromY == toY {
 		for x := fromX; x <= toX; x++ {
-			img.Set(x, fromY, c)
+			points = append(points, image.Point{x, fromY})
 		}
 		return
 	}
@@ -72,18 +81,29 @@ func DrawLine(img *image.RGBA, fromX, fromY int, toX, toY int, c color.RGBA) {
 
 	y := float64(fromY)
 	for x := fromX; x <= toX; x++ {
-		img.Set(x, int(y), c)
+		points = append(points, image.Point{x, int(y)})
 		y += m
 	}
+	return
 }
 
-func DrawPolygon(img *image.RGBA, c color.RGBA, points ...image.Point) {
-	previousPoint := points[0]
-	for _, p := range points[1:] {
-		DrawLine(img, previousPoint.X, previousPoint.Y, p.X, p.Y, c)
-		previousPoint = p
+func DrawPolygon(img *image.RGBA, c color.RGBA, vertices ...image.Point) LineMap {
+	lm := Polygon(vertices...)
+	for _, p := range lm.Points() {
+		img.Set(p.X, p.Y, c)
 	}
-	DrawLine(img, previousPoint.X, previousPoint.Y, points[0].X, points[0].Y, c)
+	return lm
+}
+
+func Polygon(vertices ...image.Point) LineMap {
+	lm := NewLineMap()
+	previousVertex := vertices[0]
+	for _, p := range vertices[1:] {
+		lm.AddLine(Line(previousVertex.X, previousVertex.Y, p.X, p.Y))
+		previousVertex = p
+	}
+	lm.AddLine(Line(previousVertex.X, previousVertex.Y, vertices[0].X, vertices[0].Y))
+	return lm
 }
 
 func DrawFilledPolygon(img *image.RGBA, outline color.RGBA, fill color.RGBA, points ...image.Point) {
@@ -112,7 +132,7 @@ func DrawFilledPolygon(img *image.RGBA, outline color.RGBA, fill color.RGBA, poi
 	// We can now print the image onto a canvas with a blank background.
 	offsetX := subImage.Min.X
 	offsetY := subImage.Min.Y
-	canvas := image.NewRGBA(image.Rect(0, 0, subImage.Max.X-offsetX+1, subImage.Max.Y-offsetY+1))
+	canvas := image.NewRGBA(image.Rect(0, 0, (subImage.Max.X-offsetX)+1, (subImage.Max.Y-offsetY)+1))
 
 	// Translate the points into the local space.
 	translatedPoints := make([]image.Point, len(points))
@@ -120,49 +140,58 @@ func DrawFilledPolygon(img *image.RGBA, outline color.RGBA, fill color.RGBA, poi
 		translatedPoints[i] = image.Point{X: p.X - offsetX, Y: p.Y - offsetY}
 	}
 
-	previousPoint := translatedPoints[0]
-	for _, p := range translatedPoints[1:] {
-		DrawLine(canvas, previousPoint.X, previousPoint.Y, p.X, p.Y, outline)
-		previousPoint = p
-	}
-	DrawLine(canvas, previousPoint.X, previousPoint.Y, translatedPoints[0].X, translatedPoints[0].Y, outline)
+	outlinePoints := DrawPolygon(canvas, outline, translatedPoints...)
 
 	// Use a simple ray algorithm to fill.
-	FillBetweenLines(canvas, fill, translatedPoints)
+	FillBetweenLines(canvas, fill, outlinePoints)
 
 	// draw.Draw(img, subImage, canvas, image.Point{}, draw.Over)
 	// draw.DrawMask(img, subImage, canvas, image.Point{}, &image.Uniform{color.Transparent}, subImage.Min, draw.Over)
 	DrawNonTransparent(img, subImage, canvas, image.Point{})
 }
 
-func FillBetweenLines(img *image.RGBA, c color.Color, vertices []image.Point) {
-	vertexMap := make(map[image.Point]interface{})
-	for _, v := range vertices {
-		vertexMap[v] = false
-	}
-	// Use a Ray Casting algorithm, it won't work properly until I make sure that vertices are ignored.
+func FillBetweenLines(img *image.RGBA, c color.Color, outline LineMap) {
+	// Use a Ray Casting algorithm.
 	// https://en.wikipedia.org/wiki/Point_in_polygon
-	for x := 0; x < img.Bounds().Dx(); x++ {
-		for y := 0; y < img.Bounds().Dy(); y++ {
-			if isTransparent(img.At(x, y)) {
-				// Look to the right edge to see if we're inside the polygon.
-				intersections := 0
-				for ix := x; ix < img.Bounds().Dx(); ix++ {
-					if !isTransparent(img.At(ix, y)) {
-						_, isVertex := vertexMap[image.Point{ix, y}]
-						if !isVertex {
-							intersections++
-						}
-					}
-				}
+	for y := 0; y < img.Bounds().Dy(); y++ {
+		intersections := 0
+		// The ids of lines in the outline.
+		var currentLines []int
+		for x := 0; x < img.Bounds().Dx(); x++ {
+			lines, partOfLine := outline.Lookup[image.Point{x, y}]
 
-				if intersections%2 != 0 {
-					// We're inside the polygon.
-					img.Set(x, y, c)
+			if partOfLine {
+				stillOnEdge := arraysAreEqual(lines, currentLines)
+				// We're still on the edge we were previously on.
+				if stillOnEdge {
+					continue
 				}
+				// We've hit a new section of intersection.
+				currentLines = lines
+				intersections += len(lines)
+				continue
+			}
+
+			if intersections%2 != 0 {
+				// We're inside the polygon.
+				img.Set(x, y, c)
 			}
 		}
 	}
+}
+
+func arraysAreEqual(a, b []int) bool {
+	bmap := make(map[int]interface{})
+	for _, b1 := range b {
+		bmap[b1] = struct{}{}
+	}
+	for _, a1 := range a {
+		_, ok := bmap[a1]
+		if !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func DrawNonTransparent(dst *image.RGBA, r image.Rectangle, src *image.RGBA, sp image.Point) {
@@ -195,4 +224,47 @@ func isTransparent(c color.Color) bool {
 		return false
 	}
 	return true
+}
+
+func NewLineMap() LineMap {
+	return LineMap{
+		Lines:  0,
+		Lookup: make(map[image.Point][]int),
+	}
+}
+
+// LineMap tracks which pixels belong to particular lines.
+type LineMap struct {
+	// Lines is the numbmer of lines in the map.
+	Lines int
+	// Find which line or lines a particular point is part of.
+	Lookup map[image.Point][]int
+}
+
+// AddLine adds all the points of a line and returns the index of the line, e.g.
+// you add the first set of points which make up the top of a square and get back
+// 1. This is not thread-safe.
+func (lm *LineMap) AddLine(points []image.Point) {
+	lm.Lines++
+	currentLine := lm.Lines
+	for _, p := range points {
+		a, _ := lm.Lookup[p]
+		lm.Lookup[p] = append(a, currentLine)
+	}
+}
+
+// Points provides a sorted slice of all points in the map.
+func (lm *LineMap) Points() []image.Point {
+	// Sort the points.
+	points := make([]image.Point, len(lm.Lookup))
+	for p := range lm.Lookup {
+		points = append(points, p)
+	}
+	sort.Slice(points, func(i, j int) bool {
+		if points[i].X != points[j].X {
+			return points[i].X < points[j].X
+		}
+		return points[i].Y < points[j].Y
+	})
+	return points
 }
