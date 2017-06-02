@@ -34,6 +34,9 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
+		//raster.DrawLine(img, 0, 1000, 300, 0, colornames.Red)
+		//raster.DrawLine(img, 1000, 1000, 700, 0, colornames.Green)
+
 		angle := 10
 
 		for i := 0; i < width-squareWidth; i += squareWidth {

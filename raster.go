@@ -78,19 +78,25 @@ func Line(fromX, fromY int, toX, toY int) (points []image.Point) {
 	rise := toY - fromY
 	run := toX - fromX
 
-	if rise > run {
-		m := float64(run) / float64(rise)
+	xdelta := float64(run) / float64(rise)
+	ydelta := float64(rise) / float64(run)
+
+	if math.Abs(xdelta) < math.Abs(ydelta) {
+		// We're moving from fromY to toY, so make sure they're in the right order.
+		if toY < fromY {
+			toX, toY, fromX, fromY = fromX, fromY, toX, toY
+		}
+
 		x := float64(fromX)
 		for y := fromY; y < toY; y++ {
 			points = append(points, image.Point{int(x), y})
-			x += m
+			x += xdelta
 		}
 	} else {
-		m := float64(rise) / float64(run)
 		y := float64(fromY)
 		for x := fromX; x < toX; x++ {
 			points = append(points, image.Point{x, int(y)})
-			y += m
+			y += ydelta
 		}
 	}
 	points = append(points, image.Point{toX, toY})
