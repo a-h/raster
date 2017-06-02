@@ -265,7 +265,7 @@ func FillBetweenLines(img *image.RGBA, c color.Color, outline LineMap) {
 			}
 			intersections := Raycast(p, img.Bounds(), outline)
 
-			if intersections%2 != 0 {
+			if intersections > 0 && intersections%2 != 0 {
 				// We're inside the polygon.
 				img.Set(x, y, c)
 			}
