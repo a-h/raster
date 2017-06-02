@@ -77,13 +77,23 @@ func Line(fromX, fromY int, toX, toY int) (points []image.Point) {
 	// It's a slope.
 	rise := toY - fromY
 	run := toX - fromX
-	m := float64(rise) / float64(run)
 
-	y := float64(fromY)
-	for x := fromX; x <= toX; x++ {
-		points = append(points, image.Point{x, int(y)})
-		y += m
+	if rise > run {
+		m := float64(run) / float64(rise)
+		x := float64(fromX)
+		for y := fromY; y < toY; y++ {
+			points = append(points, image.Point{int(x), y})
+			x += m
+		}
+	} else {
+		m := float64(rise) / float64(run)
+		y := float64(fromY)
+		for x := fromX; x < toX; x++ {
+			points = append(points, image.Point{x, int(y)})
+			y += m
+		}
 	}
+	points = append(points, image.Point{toX, toY})
 	return
 }
 
@@ -150,44 +160,112 @@ func DrawFilledPolygon(img *image.RGBA, outline color.RGBA, fill color.RGBA, poi
 	DrawNonTransparent(img, subImage, canvas, image.Point{})
 }
 
+// Raycast counts the intersections.
+func Raycast(current image.Point, r image.Rectangle, outline LineMap) int {
+	// Work out the shortest direction.
+	distanceToTop := current.Y
+	distanceToBottom := r.Dy() - current.Y
+	distanceToLeft := current.X
+	distanceToRight := r.Dx() - current.X
+
+	values := []int{distanceToTop, distanceToBottom, distanceToLeft, distanceToRight}
+	sort.Ints(values)
+	smallest := values[0]
+
+	if distanceToTop == smallest {
+		return RaycastUp(current, r, outline)
+	}
+	if distanceToBottom == smallest {
+		return RaycastDown(current, r, outline)
+	}
+	if distanceToLeft == smallest {
+		return RaycastLeft(current, r, outline)
+	}
+	return RaycastRight(current, r, outline)
+}
+
+func RaycastLeft(current image.Point, r image.Rectangle, outline LineMap) int {
+	count := 0
+	intersected := make(map[int]interface{})
+	for x := current.X; x >= 0; x-- {
+		if intersections, ok := outline.Lookup[image.Point{x, current.Y}]; ok {
+			for _, intersection := range intersections {
+				// If we've not intersected before, then it counts.
+				if _, ok := intersected[intersection]; !ok {
+					count++
+					intersected[intersection] = true
+				}
+			}
+		}
+	}
+	return count
+}
+
+func RaycastRight(current image.Point, r image.Rectangle, outline LineMap) int {
+	count := 0
+	intersected := make(map[int]interface{})
+	for x := current.X; x < r.Dx(); x++ {
+		if intersections, ok := outline.Lookup[image.Point{x, current.Y}]; ok {
+			for _, intersection := range intersections {
+				// If we've not intersected before, then it counts.
+				if _, ok := intersected[intersection]; !ok {
+					count++
+					intersected[intersection] = true
+				}
+			}
+		}
+	}
+	return count
+}
+
+func RaycastUp(current image.Point, r image.Rectangle, outline LineMap) int {
+	count := 0
+	intersected := make(map[int]interface{})
+	for y := current.Y; y >= 0; y-- {
+		// Get the line
+		if intersections, ok := outline.Lookup[image.Point{current.X, y}]; ok {
+			for _, intersection := range intersections {
+				// If we've not intersected before, then it counts.
+				if _, ok := intersected[intersection]; !ok {
+					count++
+					intersected[intersection] = true
+				}
+			}
+		}
+	}
+	return count
+}
+
+func RaycastDown(current image.Point, r image.Rectangle, outline LineMap) int {
+	count := 0
+	intersected := make(map[int]interface{})
+	for y := current.Y; y < r.Dy(); y++ {
+		if intersections, ok := outline.Lookup[image.Point{current.X, y}]; ok {
+			for _, intersection := range intersections {
+				// If we've not intersected before, then it counts.
+				if _, ok := intersected[intersection]; !ok {
+					count++
+					intersected[intersection] = true
+				}
+			}
+		}
+	}
+	return count
+}
+
 func FillBetweenLines(img *image.RGBA, c color.Color, outline LineMap) {
 	// Use a Ray Casting algorithm.
 	// https://en.wikipedia.org/wiki/Point_in_polygon
 	for y := 0; y < img.Bounds().Dy(); y++ {
-		intersections := 0
-		// The ids of lines in the outline.
-		var currentLines []int
 		for x := 0; x < img.Bounds().Dx(); x++ {
-			lines, partOfLine := outline.Lookup[image.Point{x, y}]
-
-			// We're on a vertex if more than one line is writing to a point.
-			isVertex := len(lines) > 1
-
-			// If we're on a vertex, check to see if there are any more points to the right,
-			// or it doesn't count.
-			if isVertex {
-				partOfLine = false
-				for ix := x + 1; ix < img.Bounds().Dx(); ix++ {
-					if _, pointIsOutline := outline.Lookup[image.Point{ix, y}]; pointIsOutline {
-						partOfLine = true
-						break
-					}
-				}
-			}
-
-			if partOfLine {
-				stillOnEdge := arraysAreEqual(lines, currentLines)
-				// We're still on the edge we were previously on.
-				if stillOnEdge {
-					continue
-				}
-				// We've hit a new section of intersection.
-				currentLines = lines
-				intersections++
+			p := image.Point{x, y}
+			_, onEdge := outline.Lookup[p]
+			if onEdge {
 				continue
 			}
+			intersections := Raycast(p, img.Bounds(), outline)
 
-			if intersections%2 != 0 && !isVertex {
+			if intersections%2 != 0 {
 				// We're inside the polygon.
 				img.Set(x, y, c)
 			}
