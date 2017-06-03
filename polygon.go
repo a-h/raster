@@ -163,7 +163,7 @@ func (p Polygon) IsEdge(a image.Point) (edge bool, reversal bool, linesWhichMeet
 	edge = true
 	var previousLine = linesWhichMeet[0]
 	for _, currentLine := range linesWhichMeet[1:] {
-		reversal = previousLine.ShareSameDirection(currentLine)
+		reversal = !previousLine.ShareSameDirection(currentLine)
 	}
 	return
 }

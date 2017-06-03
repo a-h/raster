@@ -27,10 +27,10 @@ func TestRaycastPolygon(t *testing.T) {
 		},
 		{
 			point:              image.Point{5, 5},
-			expectedBoundaries: 1,
+			expectedBoundaries: 2,
 		},
 		{
-			point:              image.Point{6, 10},
+			point:              image.Point{7, 10},
 			expectedBoundaries: 2,
 		},
 	}

@@ -34,16 +34,8 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
-		l1 := raster.NewLine(0, 1000, 300, 0)
-		l1.Draw(img, colornames.Red)
-		l2 := raster.NewLine(1000, 1000, 700, 0)
-		l2.Draw(img, colornames.Green)
-
 		angle := 10
 
-		drawn := 0
-
-	fin:
 		for i := 0; i < width-squareWidth; i += squareWidth {
 			for j := 0; j < height-squareWidth; j += squareWidth {
 				ax, ay := i, j // 0, 0
@@ -51,38 +43,30 @@ func main() {
 				cx, cy := i+squareWidth, j+squareWidth
 				dx, dy := i+angle, j+squareWidth-angle
 
+				l1 := raster.NewLine(ax, ay, bx, by)
+				l1.Draw(img, colornames.Red)
+
+				l2 := raster.NewLine(bx, by, cx, cy)
+				l2.Draw(img, colornames.Green)
+
+				l3 := raster.NewLine(cx, cy, dx, dy)
+				l3.Draw(img, colornames.Lightblue)
+
+				l4 := raster.NewLine(dx, dy, ax, ay)
+				l4.Draw(img, colornames.Yellow)
+
 				/*
-					for _, p := range raster.Line(ax, ay, bx, by) {
-						img.SetRGBA(p.X, p.Y, colornames.Red)
-					}
+					a := image.Point{int(ax), int(ay)}
+					b := image.Point{int(bx), int(by)}
+					c := image.Point{int(cx), int(cy)}
+					d := image.Point{int(dx), int(dy)}
 
-					for _, p := range raster.Line(bx, by, cx, cy) {
-						img.SetRGBA(p.X, p.Y, colornames.Green)
-					}
-
-					for _, p := range raster.Line(cx, cy, dx, dy) {
-						img.SetRGBA(p.X, p.Y, colornames.Lightblue)
-					}
-
-					for _, p := range raster.Line(dx, dy, ax, ay) {
-						img.SetRGBA(p.X, p.Y, colornames.Yellow)
-					}
+					p := raster.NewPolygon(a, b, c, d)
+					//p.Draw(img, colornames.Red)
+					p.DrawFill(img, colornames.Red, colornames.Blue)
 				*/
-				a := image.Point{int(ax), int(ay)}
-				b := image.Point{int(bx), int(by)}
-				c := image.Point{int(cx), int(cy)}
-				d := image.Point{int(dx), int(dy)}
-
-				p := raster.NewPolygon(a, b, c, d)
-				//p.Draw(img, colornames.Red)
-				p.DrawFill(img, colornames.Red, colornames.Blue)
 
 				angle++
-				drawn++
-
-				if drawn > 0 {
-					break fin
-				}
 			}
 		}
 

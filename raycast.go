@@ -3,6 +3,7 @@ package raster
 import "image"
 
 func Raycast(current image.Point, p Polygon) int {
+	// Keep track of lines we've already hit.
 	lines := []*Line{}
 	count := 0
 	for x := 0; x < current.X; x++ {

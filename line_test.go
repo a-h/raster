@@ -188,6 +188,11 @@ func TestShareSameDirectionFunction(t *testing.T) {
 			b:        NewLine(1, 1, 0, 0),
 			expected: true,
 		},
+		{
+			a:        NewLine(10, 5, 5, 10),
+			b:        NewLine(5, 10, 0, 5),
+			expected: false,
+		},
 	}
 
 	for _, test := range tests {

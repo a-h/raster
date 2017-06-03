@@ -45,17 +45,15 @@ func (l *Line) Eq(b *Line) bool {
 }
 
 func (l *Line) ShareSameDirection(b *Line) bool {
-	d1 := l.Direction()
-	d2 := b.Direction()
+	d1h, d1v := l.Direction()
+	d2h, d2v := b.Direction()
 
-	return math.Signbit(d1) == math.Signbit(d2)
+	return ((d1h < 0) == (d2h < 0)) &&
+		((d1v < 0) == (d2v < 0))
 }
 
-func (l *Line) Direction() float64 {
-	rise := l.To.Y - l.From.Y
-	run := l.To.X - l.From.X
-
-	return float64(rise) / float64(run)
+func (l *Line) Direction() (horizontal int, vertical int) {
+	return l.To.X - l.From.X, l.To.Y - l.From.Y
 }
 
 func (l *Line) ContainsPoint(p image.Point) bool {
