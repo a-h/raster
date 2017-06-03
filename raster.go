@@ -358,7 +358,7 @@ func (lm *LineMap) AddLine(points []image.Point) {
 // Points provides a sorted slice of all points in the map.
 func (lm *LineMap) Points() []image.Point {
 	// Sort the points.
-	points := make([]image.Point, len(lm.Lookup))
+	points := []image.Point{}
 	for p := range lm.Lookup {
 		points = append(points, p)
 	}
