@@ -3,6 +3,7 @@ package raster
 import (
 	"image"
 	"image/color"
+	"sort"
 )
 
 type Polygon struct {
@@ -25,6 +26,33 @@ func NewPolygon(vertices ...image.Point) Polygon {
 		Vertices: []image.Point(vertices),
 		Lines:    lines,
 	}
+}
+
+// Bounds returns the size of the polygon.
+func (p Polygon) Bounds() image.Rectangle {
+	minX := p.Lines[0].From.X
+	maxX := p.Lines[0].To.X
+	minY := p.Lines[0].From.Y
+	maxY := p.Lines[0].To.Y
+
+	for _, l := range p.Lines {
+		minX = smallest(minX, l.From.X, l.To.X)
+		minY = smallest(minY, l.From.Y, l.To.Y)
+		maxX = biggest(maxX, l.From.X, l.To.X)
+		maxY = biggest(maxY, l.From.Y, l.To.Y)
+	}
+
+	return image.Rect(0, 0, maxX-minX, maxY-minY)
+}
+
+func smallest(ints ...int) int {
+	sort.Ints(ints)
+	return ints[0]
+}
+
+func biggest(ints ...int) int {
+	sort.Ints(ints)
+	return ints[len(ints)-1]
 }
 
 func (p Polygon) Points() (points []image.Point) {
@@ -148,8 +176,7 @@ func fillPoints(img *image.RGBA, polygon Polygon) []image.Point {
 	return points
 }
 
-// IsEdge returns true when two lines are next to each other in the Polygon list
-// and when the angle of the
+// IsEdge returns true when two lines are next to each other in the Polygon list.
 func (p Polygon) IsEdge(a image.Point) (edge bool, reversal bool, linesWhichMeet []*Line) {
 	for _, l := range p.Lines {
 		if l.ContainsPoint(a) {
