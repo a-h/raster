@@ -158,18 +158,11 @@ func isTransparent(c color.Color) bool {
 func fillPoints(img *image.RGBA, polygon Polygon) []image.Point {
 	points := []image.Point{}
 	for y := 0; y < img.Bounds().Dy(); y++ {
-		for x := 0; x < img.Bounds().Dx(); x++ {
-			// Check if we're literally on the edge, if so, we shouldn't do anything.
-			p := image.Point{x, y}
-			isEdge, _, _ := polygon.IsEdge(p)
-			if isEdge {
-				continue
-			}
-
-			intersections := Raycast(image.Point{x, y}, polygon)
+		scan := ScanLine(y, polygon)
+		for x, intersections := range scan {
 			if intersections > 0 && intersections%2 != 0 {
 				// We're inside the polygon, because we've intersected an odd number of times.
-				points = append(points, p)
+				points = append(points, image.Point{x, y})
 			}
 		}
 	}
@@ -177,20 +170,12 @@ func fillPoints(img *image.RGBA, polygon Polygon) []image.Point {
 }
 
 // IsEdge returns true when two lines are next to each other in the Polygon list.
-func (p Polygon) IsEdge(a image.Point) (edge bool, reversal bool, linesWhichMeet []*Line) {
+func (p Polygon) IsEdge(a image.Point) (edge bool, linesWhichMeet []*Line) {
 	for _, l := range p.Lines {
 		if l.ContainsPoint(a) {
 			linesWhichMeet = append(linesWhichMeet, l)
 		}
 	}
-	if len(linesWhichMeet) == 0 {
-		return
-	}
-
-	edge = true
-	var previousLine = linesWhichMeet[0]
-	for _, currentLine := range linesWhichMeet[1:] {
-		reversal = !previousLine.ShareSameDirection(currentLine)
-	}
+	edge = len(linesWhichMeet) > 0
 	return
 }

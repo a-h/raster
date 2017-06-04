@@ -6,6 +6,7 @@ import (
 )
 
 func TestRaycastPolygon(t *testing.T) {
+	// Form a diamond.
 	a := image.Point{5, 0}
 	b := image.Point{10, 5}
 	c := image.Point{5, 10}
@@ -27,7 +28,7 @@ func TestRaycastPolygon(t *testing.T) {
 		},
 		{
 			point:              image.Point{5, 5},
-			expectedBoundaries: 2,
+			expectedBoundaries: 1,
 		},
 		{
 			point:              image.Point{7, 10},
@@ -36,9 +37,9 @@ func TestRaycastPolygon(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualBoundaries := Raycast(test.point, p)
+		actualBoundaries := ScanLine(test.point.Y, p)
 
-		if actualBoundaries != test.expectedBoundaries {
+		if actualBoundaries[test.point.X] != test.expectedBoundaries {
 			t.Errorf("for %v, expected %d boundaries, but got %d", test.point, test.expectedBoundaries, actualBoundaries)
 		}
 	}

@@ -4,16 +4,14 @@ import "image"
 
 func ScanLine(y int, p Polygon) []int {
 	// Keep track of lines we've already hit.
-	rv := make([]int, p.Bounds().Dx())
+	width := p.Bounds().Dx()
+	rv := make([]int, width)
 	lines := []*Line{}
 	count := 0
+
 	for x := 0; x < p.Bounds().Dx(); x++ {
-		isEdge, isReversal, linesWhichMeet := p.IsEdge(image.Point{x, y})
+		isEdge, linesWhichMeet := p.IsEdge(image.Point{x, y})
 		if isEdge && !containsAny(lines, linesWhichMeet) {
-			count++
-		}
-		// Skip the first reversal.
-		if isReversal && count != 1 {
 			count++
 		}
 		// Keep track of which lines we've already intersected with.
@@ -23,32 +21,62 @@ func ScanLine(y int, p Polygon) []int {
 				lines = append(lines, l)
 			}
 		}
-		rv[x] = count
+
+		if len(linesWhichMeet) > 1 {
+			for i := 0; i < len(linesWhichMeet); i += 2 {
+				l1 := linesWhichMeet[i]
+				l2 := linesWhichMeet[i+1]
+				d := CalculateDirection(l1, l2)
+				if d == Up || d == Down {
+					// Count up and down vertices twice.
+					count++
+				}
+			}
+		}
+
+		if isEdge {
+			rv[x] = 0 // Don't overwrite the edges
+		} else {
+			rv[x] = count
+		}
 	}
 	return rv
 }
 
-func Raycast(current image.Point, p Polygon) int {
-	// Keep track of lines we've already hit.
-	lines := []*Line{}
-	count := 0
-	for x := 0; x < current.X; x++ {
-		isEdge, isReversal, linesWhichMeet := p.IsEdge(image.Point{x, current.Y})
-		if isEdge && !containsAny(lines, linesWhichMeet) {
-			count++
-		}
-		if isReversal {
-			count++
-		}
-		// Keep track of which lines we've already intersected with.
-		// Some lines have more than one pixel next to each other.
-		if linesWhichMeet != nil && len(linesWhichMeet) > 0 {
-			for _, l := range linesWhichMeet {
-				lines = append(lines, l)
-			}
-		}
+type Direction int
+
+const (
+	None  = Direction(0)
+	Up    = Direction(1)
+	Right = Direction(2)
+	Down  = Direction(3)
+	Left  = Direction(4)
+)
+
+func CalculateDirection(l1 *Line, l2 *Line) Direction {
+	var sharedPoint = l1.To
+	if !sharedPoint.Eq(l2.From) {
+		return None
 	}
-	return count
+	sp := l1.From
+	ep := l2.To
+	// If the X point of both is to the right of the shared point, it's a left arrow
+	if sp.X > sharedPoint.X && ep.X > sharedPoint.X {
+		return Left
+	}
+	// If the X point of both is to the left, it's a right arrow
+	if sp.X < sharedPoint.X && ep.X < sharedPoint.X {
+		return Right
+	}
+	// If the end Y point of both lines is to the bottom of the shared point, it's an up arrow
+	if sp.Y > sharedPoint.Y && ep.Y > sharedPoint.Y {
+		return Up
+	}
+	// If the end Y point of both lines is to the top of the shared point, it's a down arrow
+	if sp.Y < sharedPoint.Y && ep.Y < sharedPoint.Y {
+		return Down
+	}
+	return None
 }
 
 func containsAny(lines []*Line, of []*Line) bool {
