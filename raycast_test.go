@@ -44,3 +44,50 @@ func TestRaycastPolygon(t *testing.T) {
 		}
 	}
 }
+
+func TestCalculateDirection(t *testing.T) {
+	tests := []struct {
+		name     string
+		l1       *Line
+		l2       *Line
+		expected Direction
+	}{
+		{
+			name:     "horizontal",
+			l1:       NewLine(0, 0, 10, 0),
+			l2:       NewLine(10, 0, 10, 0),
+			expected: None,
+		},
+		{
+			name:     "right arrow",
+			l1:       NewLine(0, 0, 5, 5),
+			l2:       NewLine(5, 5, 0, 10),
+			expected: Right,
+		},
+		{
+			name:     "left arrow",
+			l1:       NewLine(5, 0, 0, 5),
+			l2:       NewLine(0, 5, 10, 10),
+			expected: Left,
+		},
+		{
+			name:     "up arrow",
+			l1:       NewLine(0, 10, 5, 0),
+			l2:       NewLine(5, 0, 10, 10),
+			expected: Up,
+		},
+		{
+			name:     "vertical",
+			l1:       NewLine(0, 0, 0, 10),
+			l2:       NewLine(0, 10, 0, 20),
+			expected: None,
+		},
+	}
+
+	for _, test := range tests {
+		actual := CalculateDirection(test.l1, test.l2)
+		if actual != test.expected {
+			t.Errorf("%s: expected %v, but got %v", test.name, test.expected, actual)
+		}
+	}
+}

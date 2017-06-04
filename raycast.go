@@ -43,14 +43,20 @@ func ScanLine(y int, p Polygon) []int {
 	return rv
 }
 
+// Direction represents the direction a vertex (point) makes when two lines come together.
 type Direction int
 
 const (
-	None  = Direction(0)
-	Up    = Direction(1)
+	// None is no direction
+	None = Direction(0)
+	// Up points North
+	Up = Direction(1)
+	// Right points East
 	Right = Direction(2)
-	Down  = Direction(3)
-	Left  = Direction(4)
+	// Down points South
+	Down = Direction(3)
+	// Left points West
+	Left = Direction(4)
 )
 
 func CalculateDirection(l1 *Line, l2 *Line) Direction {
