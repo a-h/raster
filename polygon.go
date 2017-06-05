@@ -106,15 +106,39 @@ func (p Polygon) DrawFill(img *image.RGBA, o color.RGBA, f color.RGBA) []image.P
 		translatedPoints[i] = image.Point{X: p.X - offsetX, Y: p.Y - offsetY}
 	}
 
-	// Create the subpolygon and draw it to a canvas against a transparent background.
+	// Create the subpolygon.
 	subpolygon := NewPolygon(translatedPoints...)
-	subpolygon.Draw(canvas, o)
 
-	// Use a simple ray algorithm to fill it.
-	fillPoints := fillPoints(canvas, subpolygon)
-	for _, pt := range fillPoints {
-		canvas.Set(pt.X, pt.Y, f)
+	subpolygonBounds := subpolygon.Bounds()
+	subpolygonHeight := subpolygonBounds.Dy()
+	subpolygonWidth := subpolygonBounds.Dx()
+
+	// Scan across.
+	for y := 0; y < subpolygonHeight; y++ {
+		for x := 0; x < subpolygonWidth; x++ {
+			oddNode := false
+			for _, line := range subpolygon.Lines {
+				// If the line crosses the y axis.
+				if (line.From.Y < y && line.To.Y >= y) ||
+					(line.To.Y < y && line.From.Y >= y) {
+
+					xcross := line.From.X + (y-line.From.Y)/(line.To.Y-line.From.Y)*(line.To.X-line.From.X)
+					//xcross := line.From.X + ((y-line.To.Y)/line.To.Y-line.From.Y)*(line.To.X-line.From.X)
+					//xcross := line.From.X + line.To.Y
+					if xcross < x {
+						oddNode = !oddNode
+					}
+				}
+			}
+			// Fill the polygon.
+			if oddNode {
+				canvas.Set(x, y, f)
+			}
+		}
 	}
+
+	// Draw the borders.
+	subpolygon.Draw(canvas, o)
 
 	// Copy everything that isn't transparent from the canvas to the target image at the subImage position.
 	return drawNonTransparent(img, subImage, canvas, image.Point{})
@@ -160,7 +184,7 @@ func fillPoints(img *image.RGBA, polygon Polygon) []image.Point {
 	for y := 0; y < img.Bounds().Dy(); y++ {
 		scan := ScanLine(y, polygon)
 		for x, intersections := range scan {
-			if intersections > 0 && intersections%2 != 0 {
+			if intersections%2 > 0 {
 				// We're inside the polygon, because we've intersected an odd number of times.
 				points = append(points, image.Point{x, y})
 			}

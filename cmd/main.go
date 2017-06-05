@@ -86,6 +86,7 @@ func main() {
 					// Do something.
 				}
 			case error:
+				fmt.Println("Error: ", e.Error())
 			}
 		}
 	})

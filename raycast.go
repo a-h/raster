@@ -9,29 +9,20 @@ func ScanLine(y int, p Polygon) []int {
 	lines := []*Line{}
 	count := 0
 
+	plines := map[*Line]int{}
+	for i, l := range p.Lines {
+		plines[l] = (i % 2) + 1
+	}
+
 	for x := 0; x < p.Bounds().Dx(); x++ {
 		isEdge, linesWhichMeet := p.IsEdge(image.Point{x, y})
-		if isEdge && !containsAny(lines, linesWhichMeet) {
-			count++
-		}
-		// Keep track of which lines we've already intersected with.
-		// Some lines have more than one pixel next to each other.
-		if linesWhichMeet != nil && len(linesWhichMeet) > 0 {
-			for _, l := range linesWhichMeet {
-				lines = append(lines, l)
-			}
-		}
 
-		if len(linesWhichMeet) > 1 {
-			for i := 0; i < len(linesWhichMeet); i += 2 {
-				l1 := linesWhichMeet[i]
-				l2 := linesWhichMeet[i+1]
-				d := CalculateDirection(l1, l2)
-				if d == Up || d == Down {
-					// Count up and down vertices twice.
-					count++
-				}
+		for _, l := range linesWhichMeet {
+			if !contains(lines, l) {
+				count += plines[l]
 			}
+
+			lines = append(lines, l)
 		}
 
 		if isEdge {
@@ -91,6 +82,15 @@ func containsAny(lines []*Line, of []*Line) bool {
 			if ll.Eq(jj) {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+func contains(lines []*Line, l *Line) bool {
+	for _, ll := range lines {
+		if ll.Eq(l) {
+			return true
 		}
 	}
 	return false
