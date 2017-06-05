@@ -6,6 +6,7 @@ import (
 	"image/color"
 
 	"github.com/a-h/raster"
+
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
 	"golang.org/x/image/colornames"
@@ -34,6 +35,15 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
+		/*
+			a := image.Point{int(5), int(5)}
+			b := image.Point{int(10), int(5)}
+			c := image.Point{int(10), int(10)}
+
+			p := raster.NewPolygon(a, b, c)
+			p.DrawFill(img, colornames.Red, colornames.Blue)
+		*/
+
 		angle := 10
 
 		for i := 0; i < width-squareWidth; i += squareWidth {
@@ -56,7 +66,6 @@ func main() {
 					l4 := raster.NewLine(dx, dy, ax, ay)
 					l4.Draw(img, colornames.Yellow)
 				*/
-
 				a := image.Point{int(ax), int(ay)}
 				b := image.Point{int(bx), int(by)}
 				c := image.Point{int(cx), int(cy)}

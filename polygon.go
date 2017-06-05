@@ -3,7 +3,10 @@ package raster
 import (
 	"image"
 	"image/color"
+	"math"
 	"sort"
+
+	"github.com/a-h/linear/tolerance"
 )
 
 type Polygon struct {
@@ -113,25 +116,38 @@ func (p Polygon) DrawFill(img *image.RGBA, o color.RGBA, f color.RGBA) []image.P
 	subpolygonHeight := subpolygonBounds.Dy()
 	subpolygonWidth := subpolygonBounds.Dx()
 
+	// Sorted lines
+	sortedLines := subpolygon.Lines
+	/*
+		sort.Slice(sortedLines, func(i, j int) bool {
+			if sortedLines[i].From.X != sortedLines[j].From.X {
+				return sortedLines[i].From.X < sortedLines[j].From.X
+			}
+			return sortedLines[i].From.Y < sortedLines[j].From.Y
+		})
+	*/
+
 	// Scan across.
-	for y := 0; y < subpolygonHeight; y++ {
-		for x := 0; x < subpolygonWidth; x++ {
-			oddNode := false
-			for _, line := range subpolygon.Lines {
+	for y := 0; y <= subpolygonHeight; y++ {
+		insidePolygon := false
+		passedLines := map[*Line]interface{}{}
+		for x := 0; x <= subpolygonWidth; x++ {
+			for _, line := range sortedLines {
+				// Skip lines we've already passed
+				if _, passed := passedLines[line]; passed {
+					continue
+				}
 				// If the line crosses the y axis.
 				if (line.From.Y < y && line.To.Y >= y) ||
 					(line.To.Y < y && line.From.Y >= y) {
-
-					xcross := line.From.X + (y-line.From.Y)/(line.To.Y-line.From.Y)*(line.To.X-line.From.X)
-					//xcross := line.From.X + ((y-line.To.Y)/line.To.Y-line.From.Y)*(line.To.X-line.From.X)
-					//xcross := line.From.X + line.To.Y
-					if xcross < x {
-						oddNode = !oddNode
+					if isPointOnLine2(line, image.Point{x, y}) {
+						insidePolygon = !insidePolygon
+						passedLines[line] = true
 					}
 				}
 			}
 			// Fill the polygon.
-			if oddNode {
+			if insidePolygon {
 				canvas.Set(x, y, f)
 			}
 		}
@@ -142,6 +158,47 @@ func (p Polygon) DrawFill(img *image.RGBA, o color.RGBA, f color.RGBA) []image.P
 
 	// Copy everything that isn't transparent from the canvas to the target image at the subImage position.
 	return drawNonTransparent(img, subImage, canvas, image.Point{})
+}
+
+func isPointOnLine2(l *Line, c image.Point) bool {
+	distFromAToB := distance(l.From, l.To)
+
+	distFromAToC := distance(l.From, c)
+	distFromBToC := distance(l.To, c)
+	distanceIncludingC := distFromAToC + distFromBToC
+
+	return tolerance.IsWithin(distFromAToB, distanceIncludingC, 0.1)
+}
+
+func distance(p1, p2 image.Point) float64 {
+	distY := math.Abs(float64(p2.Y - p1.Y))
+	if p1.X == p2.X {
+		// Vertical
+		return distY
+	}
+
+	distX := math.Abs(float64(p2.X - p1.X))
+	if p1.Y == p2.Y {
+		// Horizontal
+		return distX
+	}
+
+	a2 := distX * distX
+	b2 := distY * distY
+	return math.Sqrt(float64(a2) + float64(b2))
+}
+
+func isPointOnLine(l *Line, c image.Point) bool {
+	// if AC is horizontal
+	if l.From.X == l.To.X {
+		return l.To.X == c.X
+	}
+	// if AC is vertical.
+	if l.From.Y == l.To.Y {
+		return l.To.Y == c.Y
+	}
+	// match the gradients
+	return (l.From.X-c.X)*(l.From.Y-c.Y) == (c.X-l.To.X)*(c.Y-l.To.Y)
 }
 
 func drawNonTransparent(dst *image.RGBA, r image.Rectangle, src *image.RGBA, sp image.Point) []image.Point {
