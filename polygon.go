@@ -170,22 +170,29 @@ func isPointOnLine2(l *Line, c image.Point) bool {
 	return tolerance.IsWithin(distFromAToB, distanceIncludingC, 0.1)
 }
 
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
 func distance(p1, p2 image.Point) float64 {
-	distY := math.Abs(float64(p2.Y - p1.Y))
+	distY := abs(p2.Y - p1.Y)
 	if p1.X == p2.X {
 		// Vertical
-		return distY
+		return float64(distY)
 	}
 
-	distX := math.Abs(float64(p2.X - p1.X))
+	distX := abs(p2.X - p1.X)
 	if p1.Y == p2.Y {
 		// Horizontal
-		return distX
+		return float64(distX)
 	}
 
 	a2 := distX * distX
 	b2 := distY * distY
-	return math.Sqrt(float64(a2) + float64(b2))
+	return math.Sqrt(float64(a2 + b2))
 }
 
 func isPointOnLine(l *Line, c image.Point) bool {
