@@ -3,10 +3,7 @@ package raster
 import (
 	"image"
 	"image/color"
-	"math"
 	"sort"
-
-	"github.com/a-h/linear/tolerance"
 )
 
 type Polygon struct {
@@ -75,11 +72,11 @@ func (p Polygon) Draw(img *image.RGBA, o color.RGBA) []image.Point {
 	return points
 }
 
-func (p Polygon) DrawFill(img *image.RGBA, o color.RGBA, f color.RGBA) []image.Point {
+func (p Polygon) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) []image.Point {
 	// First draw into a subimage.
 	subImage := image.Rectangle{
-		Min: p.Vertices[0],
-		Max: p.Vertices[0],
+		Min: image.Point{img.Bounds().Dx(), img.Bounds().Dy()},
+		Max: image.Point{},
 	}
 
 	for _, pt := range p.Vertices {
@@ -118,37 +115,34 @@ func (p Polygon) DrawFill(img *image.RGBA, o color.RGBA, f color.RGBA) []image.P
 
 	// Sorted lines
 	sortedLines := subpolygon.Lines
-	/*
-		sort.Slice(sortedLines, func(i, j int) bool {
-			if sortedLines[i].From.X != sortedLines[j].From.X {
-				return sortedLines[i].From.X < sortedLines[j].From.X
-			}
-			return sortedLines[i].From.Y < sortedLines[j].From.Y
-		})
-	*/
 
 	// Scan across.
 	for y := 0; y <= subpolygonHeight; y++ {
 		insidePolygon := false
 		passedLines := map[*Line]interface{}{}
 		for x := 0; x <= subpolygonWidth; x++ {
+			// Fill the polygon.
+			if insidePolygon {
+				canvas.Set(x, y, f)
+			}
 			for _, line := range sortedLines {
 				// Skip lines we've already passed
 				if _, passed := passedLines[line]; passed {
 					continue
 				}
+				lineCrossesY := (line.From.Y < y && line.To.Y >= y) ||
+					(line.To.Y < y && line.From.Y >= y)
+				//lineCrossesX := (line.From.X < y && line.To.X >= x) ||
+				//	(line.To.X < x && line.From.X >= x)
+
 				// If the line crosses the y axis.
-				if (line.From.Y < y && line.To.Y >= y) ||
-					(line.To.Y < y && line.From.Y >= y) {
-					if isPointOnLine2(line, image.Point{x, y}) {
+				if lineCrossesY {
+					if line.ContainsPoint(image.Point{x, y}) {
+						// Mark that we've crossed a boundary
 						insidePolygon = !insidePolygon
 						passedLines[line] = true
 					}
 				}
-			}
-			// Fill the polygon.
-			if insidePolygon {
-				canvas.Set(x, y, f)
 			}
 		}
 	}
@@ -158,54 +152,6 @@ func (p Polygon) DrawFill(img *image.RGBA, o color.RGBA, f color.RGBA) []image.P
 
 	// Copy everything that isn't transparent from the canvas to the target image at the subImage position.
 	return drawNonTransparent(img, subImage, canvas, image.Point{})
-}
-
-func isPointOnLine2(l *Line, c image.Point) bool {
-	distFromAToB := distance(l.From, l.To)
-
-	distFromAToC := distance(l.From, c)
-	distFromBToC := distance(l.To, c)
-	distanceIncludingC := distFromAToC + distFromBToC
-
-	return tolerance.IsWithin(distFromAToB, distanceIncludingC, 0.1)
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
-
-func distance(p1, p2 image.Point) float64 {
-	distY := abs(p2.Y - p1.Y)
-	if p1.X == p2.X {
-		// Vertical
-		return float64(distY)
-	}
-
-	distX := abs(p2.X - p1.X)
-	if p1.Y == p2.Y {
-		// Horizontal
-		return float64(distX)
-	}
-
-	a2 := distX * distX
-	b2 := distY * distY
-	return math.Sqrt(float64(a2 + b2))
-}
-
-func isPointOnLine(l *Line, c image.Point) bool {
-	// if AC is horizontal
-	if l.From.X == l.To.X {
-		return l.To.X == c.X
-	}
-	// if AC is vertical.
-	if l.From.Y == l.To.Y {
-		return l.To.Y == c.Y
-	}
-	// match the gradients
-	return (l.From.X-c.X)*(l.From.Y-c.Y) == (c.X-l.To.X)*(c.Y-l.To.Y)
 }
 
 func drawNonTransparent(dst *image.RGBA, r image.Rectangle, src *image.RGBA, sp image.Point) []image.Point {
@@ -241,29 +187,4 @@ func isTransparent(c color.Color) bool {
 		return false
 	}
 	return true
-}
-
-func fillPoints(img *image.RGBA, polygon Polygon) []image.Point {
-	points := []image.Point{}
-	for y := 0; y < img.Bounds().Dy(); y++ {
-		scan := ScanLine(y, polygon)
-		for x, intersections := range scan {
-			if intersections%2 > 0 {
-				// We're inside the polygon, because we've intersected an odd number of times.
-				points = append(points, image.Point{x, y})
-			}
-		}
-	}
-	return points
-}
-
-// IsEdge returns true when two lines are next to each other in the Polygon list.
-func (p Polygon) IsEdge(a image.Point) (edge bool, linesWhichMeet []*Line) {
-	for _, l := range p.Lines {
-		if l.ContainsPoint(a) {
-			linesWhichMeet = append(linesWhichMeet, l)
-		}
-	}
-	edge = len(linesWhichMeet) > 0
-	return
 }

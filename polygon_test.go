@@ -77,7 +77,7 @@ func TestFilledPolygon(t *testing.T) {
 	for _, test := range tests {
 		img := image.NewRGBA(test.size)
 		p := NewPolygon(test.points...)
-		p.DrawFill(img, lineColor, fillColor)
+		p.DrawFilled(img, lineColor, fillColor)
 
 		colors := mapColors(img)
 
@@ -184,42 +184,4 @@ func mapColors(img image.Image) map[color.Color][]image.Point {
 	}
 
 	return rv
-}
-
-func TestDistanceBetweenTwoPoints(t *testing.T) {
-	tests := []struct {
-		a        image.Point
-		b        image.Point
-		expected int
-	}{
-		{
-			a:        image.Point{0, 0},
-			b:        image.Point{5, 0},
-			expected: 5,
-		},
-		{
-			a:        image.Point{0, 0},
-			b:        image.Point{0, 5},
-			expected: 5,
-		},
-		{
-			// Pythagorean tiangle
-			a:        image.Point{0, 0},
-			b:        image.Point{3, 4},
-			expected: 5,
-		},
-		{
-			// Opposite direction tiangle
-			a:        image.Point{6, 0},
-			b:        image.Point{3, 0},
-			expected: 3,
-		},
-	}
-
-	for _, test := range tests {
-		actual := distance(test.a, test.b)
-		if int(actual) != test.expected {
-			t.Errorf("For %v and %v, expected distance %v, but got %v", test.a, test.b, test.expected, actual)
-		}
-	}
 }
