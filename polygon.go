@@ -6,11 +6,13 @@ import (
 	"sort"
 )
 
+// Polygon defines a shape made from multiple lines.
 type Polygon struct {
 	Vertices []image.Point
 	Lines    []*Line
 }
 
+// NewPolygon creates a polygon made from lines which meet at the provided points (vertices).
 func NewPolygon(vertices ...image.Point) Polygon {
 	lines := []*Line{}
 
@@ -55,6 +57,7 @@ func biggest(ints ...int) int {
 	return ints[len(ints)-1]
 }
 
+// Points returns all of the points which make up the polygon edges.
 func (p Polygon) Points() (points []image.Point) {
 	for _, l := range p.Lines {
 		for _, p := range l.Points() {
@@ -64,6 +67,7 @@ func (p Polygon) Points() (points []image.Point) {
 	return
 }
 
+// Draw draws the polygon to the image.
 func (p Polygon) Draw(img *image.RGBA, o color.RGBA) []image.Point {
 	points := p.Points()
 	for _, p := range points {
@@ -72,6 +76,7 @@ func (p Polygon) Draw(img *image.RGBA, o color.RGBA) []image.Point {
 	return points
 }
 
+// DrawFilled draws the filled polygon onto the image.
 func (p Polygon) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) []image.Point {
 	// First draw into a subimage.
 	subImage := image.Rectangle{

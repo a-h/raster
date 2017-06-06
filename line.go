@@ -7,12 +7,15 @@ import (
 	"math"
 )
 
+// Line defines a line between two points in 2D space.
 type Line struct {
 	From   image.Point
 	To     image.Point
 	points map[image.Point]interface{}
 }
 
+// NewLine creates a new line between the specified points and precalculates
+// the points which the line passes through.
 func NewLine(fromX, fromY int, toX, toY int) *Line {
 	l := &Line{
 		From:   image.Point{fromX, fromY},
@@ -23,6 +26,7 @@ func NewLine(fromX, fromY int, toX, toY int) *Line {
 	return l
 }
 
+// String provides a string representation of the line in form "{x, y} to {x, y}"
 func (l *Line) String() string {
 	return fmt.Sprintf("{%v, %v} to {%v, %v}", l.From.X, l.From.Y, l.To.X, l.To.Y)
 }
@@ -33,6 +37,7 @@ func (l *Line) calculatePoints() {
 	}
 }
 
+// Points returns the precalculated list of points which the line will pass through.
 func (l *Line) Points() (points []image.Point) {
 	for k := range l.points {
 		points = append(points, k)
@@ -40,27 +45,14 @@ func (l *Line) Points() (points []image.Point) {
 	return points
 }
 
-func (l *Line) Eq(b *Line) bool {
-	return l.From.Eq(b.From) && l.To.Eq(b.To)
-}
-
-func (l *Line) ShareSameDirection(b *Line) bool {
-	d1h, d1v := l.Direction()
-	d2h, d2v := b.Direction()
-
-	return ((d1h < 0) == (d2h < 0)) &&
-		((d1v < 0) == (d2v < 0))
-}
-
-func (l *Line) Direction() (horizontal int, vertical int) {
-	return l.To.X - l.From.X, l.To.Y - l.From.Y
-}
-
+// ContainsPoint returns true if a point appears on the line.
 func (l *Line) ContainsPoint(p image.Point) bool {
 	_, ok := l.points[p]
 	return ok
 }
 
+// Draw draws out the line onto the provided image, using the specified colour. It also
+// returns the points which were drawn.
 func (l *Line) Draw(img *image.RGBA, c color.RGBA) (points []image.Point) {
 	points = l.Points()
 	for _, p := range points {
