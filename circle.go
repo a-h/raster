@@ -34,7 +34,7 @@ func (c Circle) Points() (outline []image.Point, interior []image.Point) {
 			}
 		}
 	}
-	return
+	return outline, interior
 }
 
 func (c Circle) Draw(img *image.RGBA, o color.RGBA) (outline []image.Point) {
@@ -42,7 +42,7 @@ func (c Circle) Draw(img *image.RGBA, o color.RGBA) (outline []image.Point) {
 	for _, p := range outline {
 		img.Set(p.X, p.Y, o)
 	}
-	return
+	return outline
 }
 
 func (c Circle) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) (outline []image.Point, interior []image.Point) {
@@ -53,5 +53,5 @@ func (c Circle) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) (outline
 	for _, p := range interior {
 		img.Set(p.X, p.Y, f)
 	}
-	return
+	return nil, outline
 }
