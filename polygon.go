@@ -130,13 +130,14 @@ func (p Polygon) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) []image
 				if _, passed := passedLines[line]; passed {
 					continue
 				}
+
 				lineCrossesY := (line.From.Y < y && line.To.Y >= y) ||
 					(line.To.Y < y && line.From.Y >= y)
-				//lineCrossesX := (line.From.X < y && line.To.X >= x) ||
-				//	(line.To.X < x && line.From.X >= x)
+				lineCrossesX := (line.From.X <= x && line.To.X >= x) ||
+					(line.To.X <= x && line.From.X >= x)
 
-				// If the line crosses the y axis.
-				if lineCrossesY {
+				// Only bother looking up if the line crosses the and x y axis.
+				if lineCrossesY && lineCrossesX {
 					if line.ContainsPoint(image.Point{x, y}) {
 						// Mark that we've crossed a boundary
 						insidePolygon = !insidePolygon
