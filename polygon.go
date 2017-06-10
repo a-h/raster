@@ -118,9 +118,6 @@ func (p Polygon) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) []image
 	subpolygonHeight := subpolygonBounds.Dy()
 	subpolygonWidth := subpolygonBounds.Dx()
 
-	// Sorted lines
-	sortedLines := subpolygon.Lines
-
 	// Scan across.
 	for y := 0; y <= subpolygonHeight; y++ {
 		insidePolygon := false
@@ -130,7 +127,7 @@ func (p Polygon) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) []image
 			if insidePolygon {
 				canvas.Set(x, y, f)
 			}
-			for _, line := range sortedLines {
+			for _, line := range subpolygon.Lines {
 				// Skip lines we've already passed
 				if _, passed := passedLines[line]; passed {
 					continue
