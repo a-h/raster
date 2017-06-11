@@ -4,10 +4,12 @@ import (
 	"image"
 	"image/color"
 	"testing"
+
+	"golang.org/x/image/colornames"
 )
 
 func TestLineContainsPoint(t *testing.T) {
-	l := NewLine(0, 0, 10, 0)
+	l := NewLine(0, 0, 10, 0, colornames.White)
 	if !l.ContainsPoint(image.Point{1, 0}) {
 		t.Errorf("Expected point 0,0 to be set")
 	}
@@ -106,13 +108,11 @@ func TestDrawLines(t *testing.T) {
 		},
 	}
 
-	c := color.RGBA{R: 0xFF, G: 0x55, B: 0x55}
-
 	for _, test := range tests {
 		img := image.NewRGBA(test.size)
 
-		l := NewLine(test.from.X, test.from.Y, test.to.X, test.to.Y)
-		l.Draw(img, c)
+		l := NewLine(test.from.X, test.from.Y, test.to.X, test.to.Y, colornames.White)
+		l.Draw(img)
 		set, notSet, setIncorrectly, ok := compare(img, test.expected)
 		if !ok {
 			t.Errorf("%s: %v was set, %v was not set, %v was set incorrectly", test.name, set, notSet, setIncorrectly)

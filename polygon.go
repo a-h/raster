@@ -13,16 +13,16 @@ type Polygon struct {
 }
 
 // NewPolygon creates a polygon made from lines which meet at the provided points (vertices).
-func NewPolygon(vertices ...image.Point) Polygon {
+func NewPolygon(outlineColor color.RGBA, vertices ...image.Point) Polygon {
 	lines := []*Line{}
 
 	// Calculate the lines.
 	previousVertex := vertices[0]
 	for _, p := range vertices[1:] {
-		lines = append(lines, NewLine(previousVertex.X, previousVertex.Y, p.X, p.Y))
+		lines = append(lines, NewLine(previousVertex.X, previousVertex.Y, p.X, p.Y, outlineColor))
 		previousVertex = p
 	}
-	lines = append(lines, NewLine(previousVertex.X, previousVertex.Y, vertices[0].X, vertices[0].Y))
+	lines = append(lines, NewLine(previousVertex.X, previousVertex.Y, vertices[0].X, vertices[0].Y, outlineColor))
 
 	return Polygon{
 		Vertices: []image.Point(vertices),
@@ -57,21 +57,11 @@ func biggest(ints ...int) int {
 	return ints[len(ints)-1]
 }
 
-// Points returns all of the points which make up the polygon edges.
-func (p Polygon) Points() (points []image.Point) {
-	for _, l := range p.Lines {
-		for _, p := range l.Points() {
-			points = append(points, p)
-		}
-	}
-	return
-}
-
 // Draw draws the polygon to the image.
-func (p Polygon) Draw(img *image.RGBA, o color.RGBA) []image.Point {
-	points := p.Points()
-	for _, p := range points {
-		img.Set(p.X, p.Y, o)
+func (p Polygon) Draw(img *image.RGBA) []image.Point {
+	points := []image.Point{}
+	for _, l := range p.Lines {
+		points = append(points, l.Draw(img)...)
 	}
 	return points
 }
@@ -112,7 +102,7 @@ func (p Polygon) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) []image
 	}
 
 	// Create the subpolygon.
-	subpolygon := NewPolygon(translatedPoints...)
+	subpolygon := NewPolygon(o, translatedPoints...)
 
 	subpolygonBounds := subpolygon.Bounds()
 	subpolygonHeight := subpolygonBounds.Dy()
@@ -151,7 +141,7 @@ func (p Polygon) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) []image
 	}
 
 	// Draw the borders.
-	subpolygon.Draw(canvas, o)
+	subpolygon.Draw(canvas)
 
 	// Copy everything that isn't transparent from the canvas to the target image at the subImage position.
 	return drawNonTransparent(img, subImage, canvas, image.Point{})

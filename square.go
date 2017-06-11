@@ -6,38 +6,32 @@ import (
 )
 
 type Square struct {
-	Position image.Point
-	Size     int
+	Position     image.Point
+	Size         int
+	OutlineColor color.RGBA
 }
 
-func NewSquare(position image.Point, size int) Square {
+func NewSquare(x, y int, size int, outlineColor color.RGBA) Square {
 	return Square{
-		Position: position,
-		Size:     size,
+		Position:     image.Point{x, y},
+		Size:         size,
+		OutlineColor: outlineColor,
 	}
 }
 
-func (s Square) Draw(img *image.RGBA, o color.RGBA) (outline []image.Point) {
+func (s Square) Draw(img *image.RGBA) (outline []image.Point) {
 	a := image.Point{s.Position.X, s.Position.Y}
 	b := image.Point{s.Position.X + s.Size, s.Position.Y}
 	c := image.Point{s.Position.X + s.Size, s.Position.Y + s.Size}
 	d := image.Point{s.Position.X, s.Position.Y + s.Size}
 
-	top := NewLine(a.X, a.Y, b.X, b.Y)
-	right := NewLine(b.X, b.Y, c.X, c.Y)
-	bottom := NewLine(c.X, c.Y, d.X, d.Y)
-	left := NewLine(d.X, d.Y, a.X, a.Y)
+	top := NewLine(a.X, a.Y, b.X, b.Y, s.OutlineColor)
+	right := NewLine(b.X, b.Y, c.X, c.Y, s.OutlineColor)
+	bottom := NewLine(c.X, c.Y, d.X, d.Y, s.OutlineColor)
+	left := NewLine(d.X, d.Y, a.X, a.Y, s.OutlineColor)
 
-	points := top.Draw(img, o)
-	points = concat(points, right.Draw(img, o))
-	points = concat(points, bottom.Draw(img, o))
-	return concat(points, left.Draw(img, o))
-}
-
-func concat(a []image.Point, b []image.Point) []image.Point {
-	c := a
-	for _, p := range b {
-		c = append(c, p)
-	}
-	return c
+	points := top.Draw(img)
+	points = append(points, right.Draw(img)...)
+	points = append(points, bottom.Draw(img)...)
+	return append(points, left.Draw(img)...)
 }

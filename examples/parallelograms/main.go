@@ -54,7 +54,7 @@ func main() {
 				c := image.Point{int(cx), int(cy)}
 				d := image.Point{int(dx), int(dy)}
 
-				p := raster.NewPolygon(a, b, c, d)
+				p := raster.NewPolygon(colornames.Orange, a, b, c, d)
 				p.DrawFilled(img, colornames.Orange, colornames.Darkorange)
 
 				angle++

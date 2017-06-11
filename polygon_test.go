@@ -15,12 +15,12 @@ func TestBounds(t *testing.T) {
 	}{
 		{
 			// 10 x 10 square
-			p:        NewPolygon(image.Point{}, image.Point{10, 0}, image.Point{10, 10}, image.Point{0, 10}),
+			p:        NewPolygon(colornames.White, image.Point{}, image.Point{10, 0}, image.Point{10, 10}, image.Point{0, 10}),
 			expected: image.Rect(0, 0, 10, 10),
 		},
 		{
 			// 5 x 5 square
-			p:        NewPolygon(image.Point{5, 5}, image.Point{10, 5}, image.Point{10, 10}, image.Point{5, 10}),
+			p:        NewPolygon(colornames.White, image.Point{5, 5}, image.Point{10, 5}, image.Point{10, 10}, image.Point{5, 10}),
 			expected: image.Rect(0, 0, 5, 5),
 		},
 	}
@@ -76,7 +76,7 @@ func TestFilledPolygon(t *testing.T) {
 
 	for _, test := range tests {
 		img := image.NewRGBA(test.size)
-		p := NewPolygon(test.points...)
+		p := NewPolygon(lineColor, test.points...)
 		p.DrawFilled(img, lineColor, fillColor)
 
 		colors := mapColors(img)
@@ -126,8 +126,8 @@ func TestPolygon(t *testing.T) {
 
 	for _, test := range tests {
 		img := image.NewRGBA(test.size)
-		p := NewPolygon(test.points...)
-		p.Draw(img, lineColor)
+		p := NewPolygon(lineColor, test.points...)
+		p.Draw(img)
 
 		colors := mapColors(img)
 

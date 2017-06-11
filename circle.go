@@ -8,15 +8,17 @@ import (
 
 // Circle represents a circle, defined by a radius.
 type Circle struct {
-	Center image.Point
-	Radius int
+	Center       image.Point
+	Radius       int
+	OutlineColor color.RGBA
 }
 
 // NewCircle creates a new circle, with the specified radius.
-func NewCircle(x, y int, radius int) Circle {
+func NewCircle(x, y int, radius int, outlineColor color.RGBA) Circle {
 	return Circle{
-		Center: image.Point{x, y},
-		Radius: radius,
+		Center:       image.Point{x, y},
+		Radius:       radius,
+		OutlineColor: outlineColor,
 	}
 }
 
@@ -41,10 +43,10 @@ func (c Circle) Points() (outline []image.Point, interior []image.Point) {
 }
 
 // Draw draws the circle to the screen.
-func (c Circle) Draw(img *image.RGBA, o color.RGBA) (outline []image.Point) {
+func (c Circle) Draw(img *image.RGBA) (outline []image.Point) {
 	outline, _ = c.Points()
 	for _, p := range outline {
-		img.Set(p.X, p.Y, o)
+		img.Set(p.X, p.Y, c.OutlineColor)
 	}
 	return outline
 }

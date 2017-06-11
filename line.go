@@ -9,18 +9,20 @@ import (
 
 // Line defines a line between two points in 2D space.
 type Line struct {
-	From   image.Point
-	To     image.Point
-	points map[image.Point]interface{}
+	From         image.Point
+	To           image.Point
+	OutlineColor color.RGBA
+	points       map[image.Point]interface{}
 }
 
 // NewLine creates a new line between the specified points and precalculates
 // the points which the line passes through.
-func NewLine(fromX, fromY int, toX, toY int) *Line {
+func NewLine(fromX, fromY int, toX, toY int, outlineColor color.RGBA) *Line {
 	l := &Line{
-		From:   image.Point{fromX, fromY},
-		To:     image.Point{toX, toY},
-		points: make(map[image.Point]interface{}),
+		From:         image.Point{fromX, fromY},
+		To:           image.Point{toX, toY},
+		OutlineColor: outlineColor,
+		points:       make(map[image.Point]interface{}),
 	}
 	l.calculatePoints()
 	return l
@@ -51,12 +53,12 @@ func (l *Line) ContainsPoint(p image.Point) bool {
 	return ok
 }
 
-// Draw draws out the line onto the provided image, using the specified colour. It also
+// Draw draws out the line onto the provided image. It also
 // returns the points which were drawn.
-func (l *Line) Draw(img *image.RGBA, c color.RGBA) (points []image.Point) {
+func (l *Line) Draw(img *image.RGBA) (points []image.Point) {
 	points = l.Points()
 	for _, p := range points {
-		img.Set(p.X, p.Y, c)
+		img.Set(p.X, p.Y, l.OutlineColor)
 	}
 	return points
 }

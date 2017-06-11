@@ -53,7 +53,7 @@ func main() {
 			h := image.Point{250, 250}
 		*/
 
-		p := raster.NewPolygon(a, b, c, d, e, f, g, h)
+		p := raster.NewPolygon(colornames.Gray, a, b, c, d, e, f, g, h)
 		p.DrawFilled(img, colornames.Gray, colornames.Antiquewhite)
 
 		w.Upload(image.Point{0, 0}, background, image.Rect(0, 0, width, height))
