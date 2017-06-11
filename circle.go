@@ -51,6 +51,12 @@ func (c Circle) Draw(img *image.RGBA) (outline []image.Point) {
 	return outline
 }
 
+// Bounds is the size of the object.
+func (c Circle) Bounds() image.Rectangle {
+	diameter := (c.Radius * 2)
+	return image.Rect(0, 0, diameter, diameter)
+}
+
 // DrawFilled draws the filled circle to the screen.
 func (c Circle) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) (outline []image.Point, interior []image.Point) {
 	outline, interior = c.Points()

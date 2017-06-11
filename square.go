@@ -35,3 +35,8 @@ func (s Square) Draw(img *image.RGBA) (outline []image.Point) {
 	points = append(points, bottom.Draw(img)...)
 	return append(points, left.Draw(img)...)
 }
+
+// Bounds returns the size of the object.
+func (s Square) Bounds() image.Rectangle {
+	return image.Rect(0, 0, s.Size, s.Size)
+}
