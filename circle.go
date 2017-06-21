@@ -3,6 +3,7 @@ package raster
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"math"
 )
 
@@ -43,12 +44,11 @@ func (c Circle) Points() (outline []image.Point, interior []image.Point) {
 }
 
 // Draw draws the circle to the screen.
-func (c Circle) Draw(img *image.RGBA) (outline []image.Point) {
-	outline, _ = c.Points()
+func (c Circle) Draw(img draw.Image) {
+	outline, _ := c.Points()
 	for _, p := range outline {
 		img.Set(p.X, p.Y, c.OutlineColor)
 	}
-	return outline
 }
 
 // Bounds is the size of the object.

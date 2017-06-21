@@ -19,7 +19,7 @@ func TestSquareFunction(t *testing.T) {
 	testColor("bottom left", t, img.At(5, 30), colornames.White)
 	testColor("bottom right", t, img.At(25, 30), colornames.White)
 
-	testColor("outside", t, img.At(2, 2), color.Transparent)
+	testColor("outside", t, img.At(2, 2), color.RGBA{})
 }
 
 func testColor(name string, t *testing.T, actual, expected color.Color) {

@@ -2,29 +2,34 @@ package raster
 
 import (
 	"image"
+	"image/draw"
 
 	"github.com/a-h/raster/affine"
 )
 
+// Composable represents a shape which can be combined with other shapes.
+// Circle, Line, Polygon, Square and Text all implement this interface.
 type Composable interface {
-	Draw(img *image.RGBA) []image.Point
+	Draw(img draw.Image)
 	Bounds() image.Rectangle
 }
 
 type Composition struct {
-	Position   image.Point
-	Components []Composable
-	cache      *image.RGBA
+	Position       image.Point
+	Components     []Composable
+	cache          *image.RGBA
+	Transformation affine.Transformation
 }
 
 func NewComposition(position image.Point, components ...Composable) *Composition {
 	return &Composition{
-		Position:   position,
-		Components: components,
+		Position:       position,
+		Components:     components,
+		Transformation: affine.NewTransformation(affine.IdentityMatrix),
 	}
 }
 
-func (c *Composition) Draw(img *image.RGBA) {
+func (c *Composition) Draw(img draw.Image) {
 	// Draw on a temporary canvas.
 	// Cache the base image.
 	if c.cache == nil {
@@ -36,6 +41,7 @@ func (c *Composition) Draw(img *image.RGBA) {
 
 	// Apply the composition's transformations each time.
 	t := affine.NewTranslationTransformation(c.Position.X, c.Position.Y)
+	t = t.Combine(c.Transformation)
 	for y := 0; y < c.cache.Bounds().Dy(); y++ {
 		for x := 0; x < c.cache.Bounds().Dx(); x++ {
 			transformedPoint := t.Apply(image.Point{x, y})
@@ -46,6 +52,7 @@ func (c *Composition) Draw(img *image.RGBA) {
 }
 
 func (c *Composition) Bounds() image.Rectangle {
+	//TODO: Test the effect of the affine transformations.
 	maxX := 0
 	maxY := 0
 

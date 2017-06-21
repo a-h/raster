@@ -15,8 +15,8 @@ type Transformation struct {
 // NewTransformation creates a custom transformation, based on recieving an array of 6 floating points.
 // E.g. If passed in the the identity matrix, the transform does nothing.
 // NewTransformation([]float64{
-//    1, 0, 0,
-//    0, 1, 0,
+//    1, 0, 1,
+//    0, 1, 1,
 // })
 // The last 3 values are set to 0, 0, 1 regardless of input size.
 func NewTransformation(matrix []float64) Transformation {
@@ -35,8 +35,8 @@ func NewTransformation(matrix []float64) Transformation {
 
 // IdentityMatrix defines a matrix which has no effect.
 var IdentityMatrix = []float64{
-	1, 0, 0,
-	0, 1, 0,
+	1, 0, 1,
+	0, 1, 1,
 	0, 0, 1,
 }
 
@@ -59,8 +59,10 @@ func NewTranslationTransformation(x, y int) Transformation {
 
 // NewRotationTransformation creates a transformation which rotates by the specified amount.
 func NewRotationTransformation(degrees float64) Transformation {
-	sin := math.Sin(degrees)
-	cos := math.Cos(degrees)
+	radians := math.Pi / (float64(180) / degrees) // math.Pi represents 180 degrees
+
+	sin := math.Sin(radians)
+	cos := math.Cos(radians)
 	// Because the coordinate space is the opposite to usual maths, the
 	// matrix is inverted for the clockwise transform we're doing.
 	return NewTransformation([]float64{
@@ -98,6 +100,7 @@ func (t Transformation) Combine(t2 Transformation) Transformation {
 	})
 }
 
+// Eq compares two transformations against each other.
 func (t Transformation) Eq(t2 Transformation) bool {
 	return t.a == t2.a &&
 		t.b == t2.b &&
@@ -107,5 +110,5 @@ func (t Transformation) Eq(t2 Transformation) bool {
 		t.r == t2.r &&
 		t.u == t2.u &&
 		t.v == t2.v &&
-		t.v == t2.w
+		t.w == t2.w
 }

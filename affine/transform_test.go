@@ -1,6 +1,9 @@
 package affine
 
-import "testing"
+import (
+	"image"
+	"testing"
+)
 
 func TestMatrixCombination(t *testing.T) {
 	a := NewTransformation([]float64{
@@ -25,5 +28,61 @@ func TestMatrixCombination(t *testing.T) {
 
 	if actual.Eq(expected) {
 		t.Errorf("expected %v, got %v", expected, actual)
+	}
+}
+
+func TestRotationTransformation(t *testing.T) {
+	// A 90 degree transformation around the origin should result
+	// in:
+	// 0,0 being translated to 0,0
+	// 10,0 being translated to 0,10
+	tests := []struct {
+		input    image.Point
+		expected image.Point
+		degrees  float64
+	}{
+		{
+			input:    image.Point{0, 0},
+			expected: image.Point{0, 0},
+			degrees:  90,
+		},
+		{
+			input:    image.Point{10, 0},
+			expected: image.Point{0, 10},
+			degrees:  90,
+		},
+		{
+			input:    image.Point{10, 0},
+			expected: image.Point{-10, 0},
+			degrees:  180,
+		},
+		{
+			input:    image.Point{10, 0},
+			expected: image.Point{0, -10},
+			degrees:  270,
+		},
+	}
+
+	for _, test := range tests {
+		transformation := NewRotationTransformation(test.degrees)
+		actual := transformation.Apply(test.input)
+		if !actual.Eq(test.expected) {
+			t.Errorf("expected %v, got %v", test.expected, actual)
+		}
+	}
+}
+
+func TestTransformationEquality(t *testing.T) {
+	t1 := NewTransformation([]float64{0, 0, 0, 0, 0, 0, 0, 0, 0})
+	t2 := NewTransformation([]float64{0, 0, 0, 0, 0, 0, 0, 0, 0})
+
+	if !t1.Eq(t2) {
+		t.Errorf("Expected Eq to return true because the two transformation matrices are identical")
+	}
+
+	t2 = NewTransformation([]float64{0, 0, 1, 0, 0, 0})
+
+	if t1.Eq(t2) {
+		t.Errorf("Expected Eq to return false")
 	}
 }

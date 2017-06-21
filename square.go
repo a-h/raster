@@ -3,6 +3,7 @@ package raster
 import (
 	"image"
 	"image/color"
+	"image/draw"
 )
 
 type Square struct {
@@ -19,7 +20,7 @@ func NewSquare(x, y int, size int, outlineColor color.RGBA) Square {
 	}
 }
 
-func (s Square) Draw(img *image.RGBA) (outline []image.Point) {
+func (s Square) Draw(img draw.Image) {
 	a := image.Point{s.Position.X, s.Position.Y}
 	b := image.Point{s.Position.X + s.Size, s.Position.Y}
 	c := image.Point{s.Position.X + s.Size, s.Position.Y + s.Size}
@@ -30,10 +31,10 @@ func (s Square) Draw(img *image.RGBA) (outline []image.Point) {
 	bottom := NewLine(c.X, c.Y, d.X, d.Y, s.OutlineColor)
 	left := NewLine(d.X, d.Y, a.X, a.Y, s.OutlineColor)
 
-	points := top.Draw(img)
-	points = append(points, right.Draw(img)...)
-	points = append(points, bottom.Draw(img)...)
-	return append(points, left.Draw(img)...)
+	top.Draw(img)
+	right.Draw(img)
+	bottom.Draw(img)
+	left.Draw(img)
 }
 
 // Bounds returns the size of the object.

@@ -3,6 +3,7 @@ package raster
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"sort"
 )
 
@@ -58,12 +59,10 @@ func biggest(ints ...int) int {
 }
 
 // Draw draws the polygon to the image.
-func (p Polygon) Draw(img *image.RGBA) []image.Point {
-	points := []image.Point{}
+func (p Polygon) Draw(img draw.Image) {
 	for _, l := range p.Lines {
-		points = append(points, l.Draw(img)...)
+		l.Draw(img)
 	}
-	return points
 }
 
 // DrawFilled draws the filled polygon onto the image.

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 	"math"
 )
 
@@ -55,12 +56,10 @@ func (l *Line) ContainsPoint(p image.Point) bool {
 
 // Draw draws out the line onto the provided image. It also
 // returns the points which were drawn.
-func (l *Line) Draw(img *image.RGBA) (points []image.Point) {
-	points = l.Points()
-	for _, p := range points {
+func (l *Line) Draw(img draw.Image) {
+	for _, p := range l.Points() {
 		img.Set(p.X, p.Y, l.OutlineColor)
 	}
-	return points
 }
 
 func line(fromX, fromY int, toX, toY int) (points []image.Point) {
@@ -115,4 +114,31 @@ func line(fromX, fromY int, toX, toY int) (points []image.Point) {
 	}
 	points = append(points, image.Point{toX, toY})
 	return
+}
+
+func (l *Line) Bounds() image.Rectangle {
+	var minX, minY, maxX, maxY int
+
+	first := true
+	for k := range l.points {
+		if first {
+			minX = k.X
+			minY = k.Y
+			first = false
+		}
+		if k.X < minX {
+			minX = k.X
+		}
+		if k.Y < minY {
+			minY = k.Y
+		}
+		if k.X > maxX {
+			maxX = k.X
+		}
+		if k.Y > maxY {
+			maxY = k.Y
+		}
+	}
+
+	return image.Rect(minX, minY, maxX, maxY)
 }
