@@ -72,6 +72,57 @@ func TestRotationTransformation(t *testing.T) {
 	}
 }
 
+func TestTranslationTransformation(t *testing.T) {
+	// A 90 degree transformation around the origin should result
+	// in:
+	// 0,0 being translated to 0,0
+	// 10,0 being translated to 0,10
+	tests := []struct {
+		input    image.Point
+		expected image.Point
+		x        int
+		y        int
+	}{
+		{
+			input:    image.Point{0, 0},
+			x:        0,
+			y:        0,
+			expected: image.Point{0, 0},
+		},
+		{
+			input:    image.Point{0, 0},
+			x:        10,
+			y:        0,
+			expected: image.Point{10, 0},
+		},
+		{
+			input:    image.Point{0, 0},
+			x:        0,
+			y:        10,
+			expected: image.Point{0, 10},
+		},
+		{
+			input:    image.Point{0, 0},
+			x:        10,
+			y:        10,
+			expected: image.Point{10, 10},
+		},
+		{
+			input:    image.Point{0, 0},
+			x:        -10,
+			y:        -10,
+			expected: image.Point{-10, -10},
+		},
+	}
+
+	for _, test := range tests {
+		transformation := NewTranslationTransformation(test.x, test.y)
+		actual := transformation.Apply(test.input)
+		if !actual.Eq(test.expected) {
+			t.Errorf("expected %v, got %v", test.expected, actual)
+		}
+	}
+}
 func TestTransformationEquality(t *testing.T) {
 	t1 := NewTransformation([]float64{0, 0, 0, 0, 0, 0, 0, 0, 0})
 	t2 := NewTransformation([]float64{0, 0, 0, 0, 0, 0, 0, 0, 0})
