@@ -54,8 +54,7 @@ func (l *Line) ContainsPoint(p image.Point) bool {
 	return ok
 }
 
-// Draw draws out the line onto the provided image. It also
-// returns the points which were drawn.
+// Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 func (l *Line) Draw(img draw.Image) {
 	for _, p := range l.Points() {
 		img.Set(p.X, p.Y, l.OutlineColor)
@@ -116,6 +115,7 @@ func line(fromX, fromY int, toX, toY int) (points []image.Point) {
 	return
 }
 
+// Bounds provides the area of the bounding box of the line.
 func (l *Line) Bounds() image.Rectangle {
 	var minX, minY, maxX, maxY int
 

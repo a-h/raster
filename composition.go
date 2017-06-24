@@ -10,10 +10,13 @@ import (
 // Composable represents a shape which can be combined with other shapes.
 // Circle, Line, Polygon, Square and Text all implement this interface.
 type Composable interface {
+	// Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 	Draw(img draw.Image)
 	Bounds() image.Rectangle
 }
 
+// A Composition has a position, components whic make it up, and a transformation
+// that can be applied to it to move, scale, or rotate all of the elements.
 type Composition struct {
 	Position       image.Point
 	Components     []Composable
@@ -21,6 +24,8 @@ type Composition struct {
 	Transformation affine.Transformation
 }
 
+// NewComposition creates a composition for rendering at the specific point. The components must
+// be provided with reference to the coordinates of the composition's top left corner.
 func NewComposition(position image.Point, components ...Composable) *Composition {
 	return &Composition{
 		Position:       position,
@@ -29,6 +34,7 @@ func NewComposition(position image.Point, components ...Composable) *Composition
 	}
 }
 
+// Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 func (c *Composition) Draw(img draw.Image) {
 	// Draw on a temporary canvas.
 	// Cache the base image.
@@ -51,6 +57,7 @@ func (c *Composition) Draw(img draw.Image) {
 	}
 }
 
+// Bounds provides the area of the composition.
 func (c *Composition) Bounds() image.Rectangle {
 	//TODO: Test the effect of the affine transformations.
 	maxX := 0

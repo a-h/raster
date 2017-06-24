@@ -23,7 +23,7 @@ func NewCircle(center image.Point, radius int, outlineColor color.RGBA) Circle {
 	}
 }
 
-// Draw draws the circle to the screen.
+// Draw draws the element to the image. The image could be an image.RGBA* or screen buffer.
 func (c Circle) Draw(img draw.Image) {
 	bounds := image.Rect(c.Center.X-c.Radius-2, c.Center.Y-c.Radius-2, c.Center.X+c.Radius+2, c.Center.Y+c.Radius+2)
 	for ix := bounds.Min.X; ix < bounds.Max.X; ix++ {

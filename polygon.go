@@ -52,7 +52,7 @@ func (p Polygon) Bounds() image.Rectangle {
 	return image.Rect(0, 0, maxX-minX, maxY-minY)
 }
 
-// Draw draws the polygon to the image.
+// Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 func (p Polygon) Draw(img draw.Image) {
 	for _, l := range p.Lines {
 		l.Draw(img)

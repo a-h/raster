@@ -11,12 +11,14 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
+// A Text element contains a Position, Text to write and foreground text color.
 type Text struct {
 	Position image.Point
 	Text     string
 	Color    color.RGBA
 }
 
+// NewText creates a text element at the specified position.
 func NewText(position image.Point, text string, c color.RGBA) Text {
 	return Text{
 		Position: position,
@@ -25,6 +27,7 @@ func NewText(position image.Point, text string, c color.RGBA) Text {
 	}
 }
 
+// Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 func (t Text) Draw(img draw.Image) {
 	// See https://stackoverflow.com/questions/38299930/how-to-add-a-simple-text-label-to-an-image-in-go
 	point := fixed.Point26_6{

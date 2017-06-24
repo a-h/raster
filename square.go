@@ -22,6 +22,7 @@ func NewSquare(position image.Point, size int, outlineColor color.RGBA) Square {
 	}
 }
 
+// Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 func (s Square) Draw(img draw.Image) {
 	a := image.Point{s.Position.X, s.Position.Y}
 	b := image.Point{s.Position.X + s.Size, s.Position.Y}
