@@ -76,8 +76,8 @@ func TestFilledPolygon(t *testing.T) {
 
 	for _, test := range tests {
 		img := image.NewRGBA(test.size)
-		p := NewPolygon(lineColor, test.points...)
-		p.DrawFilled(img, lineColor, fillColor)
+		p := NewFilledPolygon(lineColor, fillColor, test.points...)
+		p.Draw(img)
 
 		colors := mapColors(img)
 

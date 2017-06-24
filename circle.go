@@ -23,8 +23,8 @@ func NewCircle(x, y int, radius int, outlineColor color.RGBA) Circle {
 	}
 }
 
-// Points returns the points which make up the circle.
-func (c Circle) Points() (outline []image.Point, interior []image.Point) {
+// Draw draws the circle to the screen.
+func (c Circle) Draw(img draw.Image) {
 	bounds := image.Rect(c.Center.X-c.Radius-2, c.Center.Y-c.Radius-2, c.Center.X+c.Radius+2, c.Center.Y+c.Radius+2)
 	for ix := bounds.Min.X; ix < bounds.Max.X; ix++ {
 		for iy := bounds.Min.Y; iy < bounds.Max.Y; iy++ {
@@ -33,21 +33,9 @@ func (c Circle) Points() (outline []image.Point, interior []image.Point) {
 
 			distanceFromCenter := math.Sqrt(float64(((width * width) + (height * height))))
 			if int(distanceFromCenter) == c.Radius {
-				outline = append(outline, image.Point{ix, iy})
-			}
-			if int(distanceFromCenter) < c.Radius {
-				interior = append(interior, image.Point{ix, iy})
+				img.Set(ix, iy, c.OutlineColor)
 			}
 		}
-	}
-	return outline, interior
-}
-
-// Draw draws the circle to the screen.
-func (c Circle) Draw(img draw.Image) {
-	outline, _ := c.Points()
-	for _, p := range outline {
-		img.Set(p.X, p.Y, c.OutlineColor)
 	}
 }
 
@@ -55,16 +43,4 @@ func (c Circle) Draw(img draw.Image) {
 func (c Circle) Bounds() image.Rectangle {
 	diameter := (c.Radius * 2)
 	return image.Rect(0, 0, diameter, diameter)
-}
-
-// DrawFilled draws the filled circle to the screen.
-func (c Circle) DrawFilled(img *image.RGBA, o color.RGBA, f color.RGBA) (outline []image.Point, interior []image.Point) {
-	outline, interior = c.Points()
-	for _, p := range outline {
-		img.Set(p.X, p.Y, o)
-	}
-	for _, p := range interior {
-		img.Set(p.X, p.Y, f)
-	}
-	return nil, outline
 }

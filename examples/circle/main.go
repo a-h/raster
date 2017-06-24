@@ -34,7 +34,7 @@ func main() {
 		img := background.RGBA()
 
 		circle := raster.NewCircle(500, 500, 250, colornames.Maroon)
-		circle.DrawFilled(img, colornames.Red, colornames.Aquamarine)
+		circle.Draw(img)
 
 		w.Upload(image.Point{0, 0}, background, image.Rect(0, 0, width, height))
 		w.Publish()
