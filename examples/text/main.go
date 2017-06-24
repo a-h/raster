@@ -33,7 +33,7 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
-		t := raster.NewText(100, 100, "Hello!", colornames.White)
+		t := raster.NewText(0, 0, "Hello!", colornames.White)
 		t.Draw(img)
 
 		w.Upload(image.Point{0, 0}, background, image.Rect(0, 0, width, height))

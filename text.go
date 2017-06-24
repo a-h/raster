@@ -28,8 +28,8 @@ func NewText(x, y int, text string, c color.RGBA) Text {
 func (t Text) Draw(img draw.Image) {
 	// See https://stackoverflow.com/questions/38299930/how-to-add-a-simple-text-label-to-an-image-in-go
 	point := fixed.Point26_6{
-		X: fixed.Int26_6(t.Position.X),
-		Y: fixed.Int26_6(t.Position.Y),
+		X: fixed.I(t.Position.X),
+		Y: fixed.I(t.Position.Y + 13), // Fonts are drawn from the base point, not the top left.
 	}
 
 	d := &font.Drawer{
@@ -44,15 +44,9 @@ func (t Text) Draw(img draw.Image) {
 
 // Bounds returns the size of the object.
 func (t Text) Bounds() image.Rectangle {
-	point := fixed.Point26_6{
-		X: fixed.Int26_6(t.Position.X),
-		Y: fixed.Int26_6(t.Position.Y),
-	}
-
 	d := &font.Drawer{
 		Src:  image.NewUniform(colornames.White),
 		Face: basicfont.Face7x13,
-		Dot:  point,
 	}
 
 	b, _ := d.BoundString(t.Text)
