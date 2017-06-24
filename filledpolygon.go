@@ -21,10 +21,10 @@ func NewFilledPolygon(outlineColor color.RGBA, fillColor color.RGBA, vertices ..
 	// Calculate the lines.
 	previousVertex := vertices[0]
 	for _, p := range vertices[1:] {
-		lines = append(lines, NewLine(previousVertex.X, previousVertex.Y, p.X, p.Y, outlineColor))
+		lines = append(lines, NewLine(previousVertex, p, outlineColor))
 		previousVertex = p
 	}
-	lines = append(lines, NewLine(previousVertex.X, previousVertex.Y, vertices[0].X, vertices[0].Y, outlineColor))
+	lines = append(lines, NewLine(previousVertex, vertices[0], outlineColor))
 
 	fp := FilledPolygon{
 		FillColor: fillColor,

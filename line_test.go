@@ -9,7 +9,7 @@ import (
 )
 
 func TestLineContainsPoint(t *testing.T) {
-	l := NewLine(0, 0, 10, 0, colornames.White)
+	l := NewLine(image.Point{0, 0}, image.Point{10, 0}, colornames.White)
 	if !l.ContainsPoint(image.Point{1, 0}) {
 		t.Errorf("Expected point 0,0 to be set")
 	}
@@ -111,7 +111,7 @@ func TestDrawLines(t *testing.T) {
 	for _, test := range tests {
 		img := image.NewRGBA(test.size)
 
-		l := NewLine(test.from.X, test.from.Y, test.to.X, test.to.Y, colornames.White)
+		l := NewLine(test.from, test.to, colornames.White)
 		l.Draw(img)
 		set, notSet, setIncorrectly, ok := compare(img, test.expected)
 		if !ok {

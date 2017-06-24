@@ -6,15 +6,17 @@ import (
 	"image/draw"
 )
 
+// A Square has a position, size and outline color.
 type Square struct {
 	Position     image.Point
 	Size         int
 	OutlineColor color.RGBA
 }
 
-func NewSquare(x, y int, size int, outlineColor color.RGBA) Square {
+// NewSquare creates a new square. The position represents the top left coordinate.
+func NewSquare(position image.Point, size int, outlineColor color.RGBA) Square {
 	return Square{
-		Position:     image.Point{x, y},
+		Position:     position,
 		Size:         size,
 		OutlineColor: outlineColor,
 	}
@@ -26,10 +28,10 @@ func (s Square) Draw(img draw.Image) {
 	c := image.Point{s.Position.X + s.Size, s.Position.Y + s.Size}
 	d := image.Point{s.Position.X, s.Position.Y + s.Size}
 
-	top := NewLine(a.X, a.Y, b.X, b.Y, s.OutlineColor)
-	right := NewLine(b.X, b.Y, c.X, c.Y, s.OutlineColor)
-	bottom := NewLine(c.X, c.Y, d.X, d.Y, s.OutlineColor)
-	left := NewLine(d.X, d.Y, a.X, a.Y, s.OutlineColor)
+	top := NewLine(a, b, s.OutlineColor)
+	right := NewLine(b, c, s.OutlineColor)
+	bottom := NewLine(c, d, s.OutlineColor)
+	left := NewLine(d, a, s.OutlineColor)
 
 	top.Draw(img)
 	right.Draw(img)

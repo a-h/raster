@@ -15,9 +15,9 @@ type Circle struct {
 }
 
 // NewCircle creates a new circle, with the specified radius.
-func NewCircle(x, y int, radius int, outlineColor color.RGBA) Circle {
+func NewCircle(center image.Point, radius int, outlineColor color.RGBA) Circle {
 	return Circle{
-		Center:       image.Point{x, y},
+		Center:       center,
 		Radius:       radius,
 		OutlineColor: outlineColor,
 	}

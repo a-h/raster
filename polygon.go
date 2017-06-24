@@ -23,10 +23,10 @@ func NewPolygon(outlineColor color.RGBA, vertices ...image.Point) Polygon {
 	// Calculate the lines.
 	previousVertex := vertices[0]
 	for _, p := range vertices[1:] {
-		lines = append(lines, NewLine(previousVertex.X, previousVertex.Y, p.X, p.Y, outlineColor))
+		lines = append(lines, NewLine(previousVertex, p, outlineColor))
 		previousVertex = p
 	}
-	lines = append(lines, NewLine(previousVertex.X, previousVertex.Y, vertices[0].X, vertices[0].Y, outlineColor))
+	lines = append(lines, NewLine(previousVertex, vertices[0], outlineColor))
 
 	return Polygon{
 		Vertices:     []image.Point(vertices),

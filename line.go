@@ -18,10 +18,10 @@ type Line struct {
 
 // NewLine creates a new line between the specified points and precalculates
 // the points which the line passes through.
-func NewLine(fromX, fromY int, toX, toY int, outlineColor color.RGBA) *Line {
+func NewLine(from image.Point, to image.Point, outlineColor color.RGBA) *Line {
 	l := &Line{
-		From:         image.Point{fromX, fromY},
-		To:           image.Point{toX, toY},
+		From:         from,
+		To:           to,
 		OutlineColor: outlineColor,
 		points:       make(map[image.Point]interface{}),
 	}

@@ -26,7 +26,7 @@ func TestText(t *testing.T) {
 
 	for _, test := range tests {
 		//img := image.NewRGBA(image.Rect(0, 0, 300, 300))
-		text := NewText(0, 0, test.toWrite, colornames.White)
+		text := NewText(image.Point{0, 0}, test.toWrite, colornames.White)
 
 		bounds := text.Bounds()
 		if bounds.Dx() != test.expected.Dx() {

@@ -34,8 +34,8 @@ func main() {
 		img := background.RGBA()
 
 		circleInsideSquare := raster.NewComposition(image.Point{250, 250},
-			raster.NewCircle(250, 250, 250, colornames.Maroon),
-			raster.NewSquare(0, 0, 500, colornames.Green))
+			raster.NewCircle(image.Point{250, 250}, 250, colornames.Maroon),
+			raster.NewSquare(image.Point{0, 0}, 500, colornames.Green))
 		circleInsideSquare.Draw(img)
 
 		w.Upload(image.Point{0, 0}, background, image.Rect(0, 0, width, height))

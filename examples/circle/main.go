@@ -33,7 +33,7 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
-		circle := raster.NewCircle(500, 500, 250, colornames.Maroon)
+		circle := raster.NewCircle(image.Point{500, 500}, 250, colornames.Maroon)
 		circle.Draw(img)
 
 		w.Upload(image.Point{0, 0}, background, image.Rect(0, 0, width, height))

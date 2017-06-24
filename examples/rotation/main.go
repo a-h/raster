@@ -34,7 +34,7 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
-		l := raster.NewLine(0, 0, 250, 0, colornames.Green)
+		l := raster.NewLine(image.Point{0, 0}, image.Point{250, 0}, colornames.Green)
 
 		// Draw a plus symbol.
 		c := raster.NewComposition(image.Point{500, 500}, l)

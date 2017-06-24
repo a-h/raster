@@ -11,7 +11,7 @@ import (
 func TestSquareFunction(t *testing.T) {
 	img := image.NewRGBA(image.Rect(0, 0, 300, 300))
 
-	l := NewSquare(5, 10, 20, colornames.White)
+	l := NewSquare(image.Point{5, 10}, 20, colornames.White)
 	l.Draw(img)
 
 	testColor("top left", t, img.At(5, 10), colornames.White)

@@ -33,7 +33,7 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
-		square := raster.NewSquare(250, 250, 500, colornames.Green)
+		square := raster.NewSquare(image.Point{250, 250}, 500, colornames.Green)
 		square.Draw(img)
 
 		w.Upload(image.Point{0, 0}, background, image.Rect(0, 0, width, height))

@@ -17,9 +17,9 @@ type Text struct {
 	Color    color.RGBA
 }
 
-func NewText(x, y int, text string, c color.RGBA) Text {
+func NewText(position image.Point, text string, c color.RGBA) Text {
 	return Text{
-		Position: image.Point{x, y},
+		Position: position,
 		Text:     text,
 		Color:    c,
 	}

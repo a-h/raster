@@ -14,11 +14,11 @@ type FilledCircle struct {
 }
 
 // NewFilledCircle creates a new circle, with the specified radius, filled with the fillcolor.
-func NewFilledCircle(x, y int, radius int, outlineColor color.RGBA, fillColor color.RGBA) FilledCircle {
+func NewFilledCircle(center image.Point, radius int, outlineColor color.RGBA, fillColor color.RGBA) FilledCircle {
 	fc := FilledCircle{
 		FillColor: fillColor,
 	}
-	fc.Center = image.Point{x, y}
+	fc.Center = center
 	fc.Radius = radius
 	fc.OutlineColor = outlineColor
 	return fc
