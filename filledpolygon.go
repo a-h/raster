@@ -3,6 +3,7 @@ package raster
 import (
 	"image"
 	"image/color"
+	"image/draw"
 
 	"github.com/a-h/raster/biggest"
 	"github.com/a-h/raster/smallest"
@@ -53,7 +54,7 @@ func (p FilledPolygon) Bounds() image.Rectangle {
 }
 
 // Draw draws the filled polygon onto the image.
-func (p FilledPolygon) Draw(img *image.RGBA) {
+func (p FilledPolygon) Draw(img draw.Image) {
 	// First draw into a subimage.
 	subImage := image.Rectangle{
 		Min: image.Point{img.Bounds().Dx(), img.Bounds().Dy()},
@@ -134,7 +135,7 @@ func (p FilledPolygon) Draw(img *image.RGBA) {
 }
 
 // drawNonTransparent draws the src image onto the dst image at the specified position.
-func drawNonTransparent(dst *image.RGBA, position image.Point, src *image.RGBA) {
+func drawNonTransparent(dst draw.Image, position image.Point, src *image.RGBA) {
 	for srcX := 0; srcX < src.Bounds().Dx(); srcX++ {
 		for srcY := 0; srcY < src.Bounds().Dy(); srcY++ {
 			dstX := position.X + srcX
