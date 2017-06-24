@@ -179,6 +179,25 @@ func TestScaleTransformation(t *testing.T) {
 				image.Point{2, 0},
 			},
 		},
+		{
+			name: "Ignore high values",
+			input: []image.Point{
+				image.Point{0, 0},
+				image.Point{1, 0},
+				image.Point{2, 0},
+				image.Point{3, 0},
+				image.Point{4, 0},
+			},
+			scaleWidth:  1.5,
+			scaleHeight: 1.5,
+			expected: []image.Point{
+				image.Point{0, 0},
+				image.Point{1, 0},
+				image.Point{2, 0},
+				image.Point{3, 0},
+				image.Point{4, 0},
+			},
+		},
 	}
 
 	for _, test := range tests {

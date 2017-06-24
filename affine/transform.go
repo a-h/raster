@@ -35,8 +35,8 @@ func NewTransformation(matrix []float64) Transformation {
 
 // IdentityMatrix defines a matrix which has no effect.
 var IdentityMatrix = []float64{
-	1, 0, 1,
-	0, 1, 1,
+	1, 0, 0,
+	0, 1, 0,
 	0, 0, 1,
 }
 
