@@ -38,3 +38,7 @@ circleInsideSquare := raster.NewComposition(image.Point{250, 250},
     raster.NewSquare(image.Point{0, 0}, 500, colornames.Green))
 circleInsideSquare.Draw(img)
 ```
+
+## Examples
+
+See [./examples](examples).
