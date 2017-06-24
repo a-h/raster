@@ -2,6 +2,7 @@ package affine
 
 import (
 	"image"
+	"reflect"
 	"testing"
 )
 
@@ -135,5 +136,60 @@ func TestTransformationEquality(t *testing.T) {
 
 	if t1.Eq(t2) {
 		t.Errorf("Expected Eq to return false")
+	}
+}
+
+func TestScaleTransformation(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       []image.Point
+		scaleWidth  float64
+		scaleHeight float64
+		expected    []image.Point
+	}{
+		{
+			name: "Do nothing",
+			input: []image.Point{
+				image.Point{0, 0},
+				image.Point{1, 0},
+			},
+			scaleWidth:  1,
+			scaleHeight: 1,
+			expected: []image.Point{
+				image.Point{0, 0},
+				image.Point{1, 0},
+			},
+		},
+		{
+			name: "Half the width",
+			input: []image.Point{
+				image.Point{0, 0},
+				image.Point{1, 0},
+				image.Point{2, 0},
+				image.Point{3, 0},
+				image.Point{4, 0},
+			},
+			scaleWidth:  0.5,
+			scaleHeight: 1,
+			expected: []image.Point{
+				image.Point{0, 0},
+				image.Point{0, 0},
+				image.Point{1, 0},
+				image.Point{1, 0},
+				image.Point{2, 0},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		transformation := NewScaleTransformation(test.scaleWidth, test.scaleHeight)
+		actual := []image.Point{}
+
+		for _, p := range test.input {
+			actual = append(actual, transformation.Apply(p))
+		}
+		if !reflect.DeepEqual(actual, test.expected) {
+			t.Errorf("%s: expected %v, got %v", test.name, test.expected, actual)
+		}
 	}
 }

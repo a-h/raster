@@ -41,8 +41,12 @@ var IdentityMatrix = []float64{
 }
 
 // NewScaleTransformation applies a scaling factor to the width and height, e.g.
-// a width of 2 would be twice as wide.
+// a width of 0.5 would be half the size. Numbers greater than one will be ignored
+// as inputs.
 func NewScaleTransformation(width, height float64) Transformation {
+	if width > 1 || height > 1 {
+		return NewTransformation(IdentityMatrix)
+	}
 	return NewTransformation([]float64{
 		width, 0, 0,
 		0, height, 0,
