@@ -1,8 +1,8 @@
 ## Raster
 
-A very simple library for drawing 2D shapes onto images.
+A very simple library for drawing 2D shapes onto images or the screen.
 
-I wrote it to learn, and to render simple shapes for games, you're probably looking for something like this: https://github.com/fogleman/gg
+I wrote it to learn, and to render simple shapes for games. You're probably looking for something like this: https://github.com/fogleman/gg
 
 ### Features
 
