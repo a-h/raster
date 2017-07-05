@@ -1,8 +1,10 @@
 ## Raster
 
-A very simple library for drawing 2D shapes onto images or the screen.
+A very simple library for drawing 2D shapes onto images or the screen with minimal dependencies.
 
-I wrote it to learn, and to render simple shapes for games. You're probably looking for something like this: https://github.com/fogleman/gg
+I wrote it to learn, and to render simple shapes for games. You're probably looking for something more fully featured, like this: https://github.com/fogleman/gg
+
+There's also a Turtle library similar to PyTurtle I wrote for my son to play with.
 
 ### Features
 
@@ -39,6 +41,28 @@ circleInsideSquare := raster.NewComposition(image.Point{250, 250},
 circleInsideSquare.Draw(img)
 ```
 
-## Examples
+### Turtle
 
-See [./examples](examples).
+See [./examples/turtle](./examples/turtle)
+
+```go
+t := turtle.New(img)
+t.Position = image.Point{width / 2, (height / 2) - 60}
+// Walk out a bit.
+t.Pen.Active = false
+t.Forward(30)
+// Then draw an octogon.
+sides := 8
+angle := 360 / float64(sides)
+
+t.Pen.Active = true
+for i := 0; i < sides; i++ {
+    t.Rotate(angle)
+    t.Forward(50)
+}
+```
+
+
+## Complete examples
+
+See [./examples](examples)

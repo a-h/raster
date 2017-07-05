@@ -131,38 +131,5 @@ func (p FilledPolygon) Draw(img draw.Image) {
 	subpolygon.Draw(canvas)
 
 	// Copy everything that isn't transparent from the canvas to the target image at the subImage position.
-	drawNonTransparent(img, subImage.Min, canvas)
-}
-
-// drawNonTransparent draws the src image onto the dst image at the specified position.
-func drawNonTransparent(dst draw.Image, position image.Point, src *image.RGBA) {
-	for srcX := 0; srcX < src.Bounds().Dx(); srcX++ {
-		for srcY := 0; srcY < src.Bounds().Dy(); srcY++ {
-			dstX := position.X + srcX
-			dstY := position.Y + srcY
-
-			dstColor := src.At(srcX, srcY)
-			if !isTransparent(dstColor) {
-				dst.Set(dstX, dstY, dstColor)
-			}
-		}
-	}
-}
-
-func isTransparent(c color.Color) bool {
-	r1, g1, b1, a1 := c.RGBA()
-	r2, g2, b2, a2 := color.Transparent.RGBA()
-	if r1 != r2 {
-		return false
-	}
-	if g1 != g2 {
-		return false
-	}
-	if b1 != b2 {
-		return false
-	}
-	if a1 != a2 {
-		return false
-	}
-	return true
+	draw.Draw(img, subImage, canvas, image.Point{}, draw.Over)
 }

@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/a-h/raster"
-
+	"github.com/a-h/raster/turtle"
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
-	"golang.org/x/image/colornames"
-	"golang.org/x/mobile/event/key"
 	"golang.org/x/mobile/event/lifecycle"
 )
 
@@ -33,8 +30,20 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
-		circle := raster.NewCircle(image.Point{500, 500}, 250, colornames.White)
-		circle.Draw(img)
+		t := turtle.New(img)
+		t.Position = image.Point{width / 2, (height / 2) - 60}
+		// Walk out a bit.
+		t.Pen.Active = false
+		t.Forward(30)
+		// Then draw an octogon.
+		sides := 8
+		angle := 360 / float64(sides)
+
+		t.Pen.Active = true
+		for i := 0; i < sides; i++ {
+			t.Rotate(angle)
+			t.Forward(50)
+		}
 
 		w.Upload(image.Point{0, 0}, background, image.Rect(0, 0, width, height))
 		w.Publish()
@@ -46,10 +55,6 @@ func main() {
 				if e.To == lifecycle.StageDead {
 					fmt.Println("StageDead...")
 					return
-				}
-			case key.Event:
-				if e.Code == key.CodeUpArrow {
-					// Do something.
 				}
 			case error:
 				fmt.Println("Error: ", e.Error())

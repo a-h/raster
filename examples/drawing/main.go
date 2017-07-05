@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/a-h/raster"
+	"github.com/a-h/raster/turtle"
 
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
-	"golang.org/x/image/colornames"
 	"golang.org/x/mobile/event/key"
 	"golang.org/x/mobile/event/lifecycle"
 )
@@ -33,8 +32,11 @@ func main() {
 		background, _ := s.NewBuffer(image.Point{width, height})
 		img := background.RGBA()
 
-		circle := raster.NewCircle(image.Point{500, 500}, 250, colornames.White)
-		circle.Draw(img)
+		t := turtle.New(img)
+		t.Position = image.Point{250, 250}
+		t.Forward(100)
+		t.Rotate(30)
+		t.Forward(100)
 
 		w.Upload(image.Point{0, 0}, background, image.Rect(0, 0, width, height))
 		w.Publish()
