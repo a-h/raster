@@ -151,3 +151,42 @@ func compare(img *image.RGBA, activePixels []image.Point) (set, notSet, setIncor
 
 	return set, notSet, setIncorrectly, ((len(notSet) == 0) && (len(setIncorrectly) == 0))
 }
+
+func TestLineStringFunction(t *testing.T) {
+	l := NewLine(image.Point{0, 1}, image.Point{2, 3}, colornames.White)
+	if l.String() != "{0, 1} to {2, 3}" {
+		t.Errorf("unexpected line string representation")
+	}
+}
+
+func TestLineBoundsFunction(t *testing.T) {
+	tests := []struct {
+		from     image.Point
+		to       image.Point
+		expected image.Rectangle
+	}{
+		{
+			from:     image.Point{0, 0},
+			to:       image.Point{100, 100},
+			expected: image.Rect(0, 0, 100, 100),
+		},
+		{
+			from:     image.Point{100, 100},
+			to:       image.Point{100, 100},
+			expected: image.Rect(0, 0, 0, 0),
+		},
+		{
+			from:     image.Point{100, 100},
+			to:       image.Point{500, 500},
+			expected: image.Rect(100, 100, 500, 500),
+		},
+	}
+
+	for _, test := range tests {
+		l := NewLine(test.from, test.to, colornames.White)
+		actual := l.Bounds()
+		if !actual.Eq(test.expected) {
+			t.Errorf("For line %v, expected bounds %v, but got %v", l.String(), test.expected, actual)
+		}
+	}
+}

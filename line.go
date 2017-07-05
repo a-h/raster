@@ -115,7 +115,8 @@ func line(fromX, fromY int, toX, toY int) (points []image.Point) {
 	return
 }
 
-// Bounds provides the area of the bounding box of the line.
+// Bounds provides the area of the bounding box of the line on its canvas,
+// rather than the size of the object itself.
 func (l *Line) Bounds() image.Rectangle {
 	var minX, minY, maxX, maxY int
 
