@@ -27,3 +27,13 @@ func testColor(name string, t *testing.T, actual, expected color.Color) {
 		t.Errorf("%s: expected %v, got %v", name, expected, actual)
 	}
 }
+
+func TestSquareSize(t *testing.T) {
+	s := NewSquare(image.Point{}, 100, colornames.White)
+	if s.Bounds().Dx() != 100 {
+		t.Errorf("expected a width of 100, but got %v", s.Bounds().Dx())
+	}
+	if s.Bounds().Dy() != 100 {
+		t.Errorf("expected a height of 100, but got %v", s.Bounds().Dy())
+	}
+}
