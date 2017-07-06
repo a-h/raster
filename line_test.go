@@ -178,7 +178,7 @@ func TestLineBoundsFunction(t *testing.T) {
 		{
 			from:     image.Point{100, 100},
 			to:       image.Point{500, 500},
-			expected: image.Rect(100, 100, 500, 500),
+			expected: image.Rect(0, 0, 400, 400),
 		},
 	}
 
@@ -192,8 +192,16 @@ func TestLineBoundsFunction(t *testing.T) {
 }
 
 func BenchmarkLine(b *testing.B) {
+	img := image.NewRGBA(image.Rect(0, 0, 1000, 1000))
 	for i := 0; i < b.N; i++ {
-		NewLine(image.Point{0, 0}, image.Point{1000, 1000}, colornames.White)
-		//l.ContainsPoint(image.Point{0, 0})
+		l := NewLine(image.Point{0, 0}, image.Point{1000, 1000}, colornames.White)
+		l.Draw(img)
+	}
+}
+
+func BenchmarkLineContainsPoint(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		l := NewLine(image.Point{0, 0}, image.Point{1000, 1000}, colornames.White)
+		l.ContainsPoint(image.Point{0, 0})
 	}
 }

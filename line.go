@@ -13,7 +13,6 @@ type Line struct {
 	From         image.Point
 	To           image.Point
 	OutlineColor color.RGBA
-	points       map[image.Point]interface{}
 }
 
 // NewLine creates a new line between the specified points and precalculates
@@ -23,9 +22,7 @@ func NewLine(from image.Point, to image.Point, outlineColor color.RGBA) *Line {
 		From:         from,
 		To:           to,
 		OutlineColor: outlineColor,
-		points:       make(map[image.Point]interface{}),
 	}
-	l.calculatePoints()
 	return l
 }
 
@@ -34,41 +31,43 @@ func (l *Line) String() string {
 	return fmt.Sprintf("{%v, %v} to {%v, %v}", l.From.X, l.From.Y, l.To.X, l.To.Y)
 }
 
-func (l *Line) calculatePoints() {
-	for _, p := range line(l.From.X, l.From.Y, l.To.X, l.To.Y) {
-		l.points[p] = true
-	}
-}
-
 // Points returns the precalculated list of points which the line will pass through.
 func (l *Line) Points() (points []image.Point) {
-	for k := range l.points {
-		points = append(points, k)
+	accumulator := func(x, y int) {
+		points = append(points, image.Point{x, y})
 	}
+	line(l.From.X, l.From.Y, l.To.X, l.To.Y, accumulator)
 	return points
 }
 
 // ContainsPoint returns true if a point appears on the line.
 func (l *Line) ContainsPoint(p image.Point) bool {
-	_, ok := l.points[p]
-	return ok
+	contains := false
+	containerCheck := func(x, y int) {
+		if p.X == x && p.Y == y {
+			contains = true
+		}
+	}
+	line(l.From.X, l.From.Y, l.To.X, l.To.Y, containerCheck)
+	return contains
 }
 
 // Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 func (l *Line) Draw(img draw.Image) {
-	for _, p := range l.Points() {
-		img.Set(p.X, p.Y, l.OutlineColor)
+	drawer := func(x, y int) {
+		img.Set(x, y, l.OutlineColor)
 	}
+	line(l.From.X, l.From.Y, l.To.X, l.To.Y, drawer)
 }
 
-func line(fromX, fromY int, toX, toY int) (points []image.Point) {
+func line(fromX, fromY int, toX, toY int, f func(x, y int)) {
 	// Vertical line.
 	if fromX == toX {
 		if toY < fromY {
 			toX, toY, fromX, fromY = fromX, fromY, toX, toY
 		}
 		for y := fromY; y <= toY; y++ {
-			points = append(points, image.Point{fromX, y})
+			f(fromX, y)
 		}
 		return
 	}
@@ -81,7 +80,7 @@ func line(fromX, fromY int, toX, toY int) (points []image.Point) {
 	// Horizontal line, we don't need floating points.
 	if fromY == toY {
 		for x := fromX; x <= toX; x++ {
-			points = append(points, image.Point{x, fromY})
+			f(x, fromY)
 		}
 		return
 	}
@@ -101,45 +100,43 @@ func line(fromX, fromY int, toX, toY int) (points []image.Point) {
 
 		x := float64(fromX)
 		for y := fromY; y < toY; y++ {
-			points = append(points, image.Point{int(x), y})
+			f(int(x), y)
 			x += xdelta
 		}
 	} else {
 		y := float64(fromY)
 		for x := fromX; x < toX; x++ {
-			points = append(points, image.Point{x, int(y)})
+			f(x, int(y))
 			y += ydelta
 		}
 	}
-	points = append(points, image.Point{toX, toY})
-	return
+	f(toX, toY)
 }
 
-// Bounds provides the area of the bounding box of the line on its canvas,
-// rather than the size of the object itself.
+// Bounds provides the area of the bounding box of the line.
 func (l *Line) Bounds() image.Rectangle {
-	var minX, minY, maxX, maxY int
-
 	first := true
-	for k := range l.points {
+	var minX, minY, maxX, maxY int
+	c := func(x, y int) {
 		if first {
-			minX = k.X
-			minY = k.Y
+			minX = x
+			minY = y
 			first = false
 		}
-		if k.X < minX {
-			minX = k.X
+		if x < minX {
+			minX = x
 		}
-		if k.Y < minY {
-			minY = k.Y
+		if y < minY {
+			minY = y
 		}
-		if k.X > maxX {
-			maxX = k.X
+		if x > maxX {
+			maxX = x
 		}
-		if k.Y > maxY {
-			maxY = k.Y
+		if y > maxY {
+			maxY = y
 		}
 	}
+	line(l.From.X, l.From.Y, l.To.X, l.To.Y, c)
 
-	return image.Rect(minX, minY, maxX, maxY)
+	return image.Rect(0, 0, maxX-minX, maxY-minY)
 }
