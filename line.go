@@ -15,8 +15,7 @@ type Line struct {
 	OutlineColor color.RGBA
 }
 
-// NewLine creates a new line between the specified points and precalculates
-// the points which the line passes through.
+// NewLine creates a new line between the specified points.
 func NewLine(from image.Point, to image.Point, outlineColor color.RGBA) *Line {
 	l := &Line{
 		From:         from,
@@ -31,7 +30,7 @@ func (l *Line) String() string {
 	return fmt.Sprintf("{%v, %v} to {%v, %v}", l.From.X, l.From.Y, l.To.X, l.To.Y)
 }
 
-// Points returns the precalculated list of points which the line will pass through.
+// Points returns the points of the line will pass through.
 func (l *Line) Points() (points []image.Point) {
 	accumulator := func(x, y int) bool {
 		points = append(points, image.Point{x, y})
