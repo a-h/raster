@@ -50,7 +50,7 @@ func (p FilledPolygon) Bounds() image.Rectangle {
 		maxY = biggest.IntegerIn(maxY, l.From.Y, l.To.Y)
 	}
 
-	return image.Rect(0, 0, maxX-minX, maxY-minY)
+	return image.Rect(minX, minY, maxX, maxY)
 }
 
 // Draw draws the filled polygon onto the image.

@@ -190,3 +190,10 @@ func TestLineBoundsFunction(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkLine(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NewLine(image.Point{0, 0}, image.Point{1000, 1000}, colornames.White)
+		//l.ContainsPoint(image.Point{0, 0})
+	}
+}
