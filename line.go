@@ -33,8 +33,9 @@ func (l *Line) String() string {
 
 // Points returns the precalculated list of points which the line will pass through.
 func (l *Line) Points() (points []image.Point) {
-	accumulator := func(x, y int) {
+	accumulator := func(x, y int) bool {
 		points = append(points, image.Point{x, y})
+		return true
 	}
 	line(l.From.X, l.From.Y, l.To.X, l.To.Y, accumulator)
 	return points
@@ -43,10 +44,11 @@ func (l *Line) Points() (points []image.Point) {
 // ContainsPoint returns true if a point appears on the line.
 func (l *Line) ContainsPoint(p image.Point) bool {
 	contains := false
-	containerCheck := func(x, y int) {
+	containerCheck := func(x, y int) bool {
 		if p.X == x && p.Y == y {
 			contains = true
 		}
+		return !contains
 	}
 	line(l.From.X, l.From.Y, l.To.X, l.To.Y, containerCheck)
 	return contains
@@ -54,20 +56,23 @@ func (l *Line) ContainsPoint(p image.Point) bool {
 
 // Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 func (l *Line) Draw(img draw.Image) {
-	drawer := func(x, y int) {
+	drawer := func(x, y int) bool {
 		img.Set(x, y, l.OutlineColor)
+		return true
 	}
 	line(l.From.X, l.From.Y, l.To.X, l.To.Y, drawer)
 }
 
-func line(fromX, fromY int, toX, toY int, f func(x, y int)) {
+func line(fromX, fromY int, toX, toY int, f func(x, y int) bool) {
 	// Vertical line.
 	if fromX == toX {
 		if toY < fromY {
 			toX, toY, fromX, fromY = fromX, fromY, toX, toY
 		}
 		for y := fromY; y <= toY; y++ {
-			f(fromX, y)
+			if !f(fromX, y) {
+				return
+			}
 		}
 		return
 	}
@@ -80,7 +85,9 @@ func line(fromX, fromY int, toX, toY int, f func(x, y int)) {
 	// Horizontal line, we don't need floating points.
 	if fromY == toY {
 		for x := fromX; x <= toX; x++ {
-			f(x, fromY)
+			if !f(x, fromY) {
+				return
+			}
 		}
 		return
 	}
@@ -100,13 +107,17 @@ func line(fromX, fromY int, toX, toY int, f func(x, y int)) {
 
 		x := float64(fromX)
 		for y := fromY; y < toY; y++ {
-			f(int(x), y)
+			if !f(int(x), y) {
+				return
+			}
 			x += xdelta
 		}
 	} else {
 		y := float64(fromY)
 		for x := fromX; x < toX; x++ {
-			f(x, int(y))
+			if !f(x, int(y)) {
+				return
+			}
 			y += ydelta
 		}
 	}
@@ -117,7 +128,7 @@ func line(fromX, fromY int, toX, toY int, f func(x, y int)) {
 func (l *Line) Bounds() image.Rectangle {
 	first := true
 	var minX, minY, maxX, maxY int
-	c := func(x, y int) {
+	c := func(x, y int) bool {
 		if first {
 			minX = x
 			minY = y
@@ -135,6 +146,7 @@ func (l *Line) Bounds() image.Rectangle {
 		if y > maxY {
 			maxY = y
 		}
+		return true
 	}
 	line(l.From.X, l.From.Y, l.To.X, l.To.Y, c)
 
