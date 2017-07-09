@@ -42,6 +42,21 @@ func (l *Line) Points() (points []image.Point) {
 
 // ContainsPoint returns true if a point appears on the line.
 func (l *Line) ContainsPoint(p image.Point) bool {
+	// Work out whether to bother checking at all.
+	//TODO: Reorder line to be from left to right!!
+	lineCrossesY := (l.From.Y <= p.Y && l.To.Y >= p.Y) ||
+		(l.To.Y <= p.Y && l.From.Y >= p.Y)
+	if !lineCrossesY {
+		return false
+	}
+
+	lineCrossesX := (l.From.X <= p.X && l.To.X >= p.X) ||
+		(l.To.X <= p.X && l.From.X >= p.X)
+	if !lineCrossesX {
+		return false
+	}
+
+	// Check the line.
 	contains := false
 	containerCheck := func(x, y int) bool {
 		if p.X == x && p.Y == y {

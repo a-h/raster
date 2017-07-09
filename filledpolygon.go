@@ -55,54 +55,31 @@ func (p FilledPolygon) Bounds() image.Rectangle {
 
 // Draw draws the filled polygon onto the image.
 func (p FilledPolygon) Draw(img draw.Image) {
-	// First draw into a subimage.
-	subImage := image.Rectangle{
-		Min: image.Point{img.Bounds().Dx(), img.Bounds().Dy()},
-		Max: image.Point{},
-	}
-
-	for _, pt := range p.Vertices {
-		if pt.X < subImage.Min.X {
-			subImage.Min.X = pt.X
-		}
-		if pt.Y < subImage.Min.Y {
-			subImage.Min.Y = pt.Y
-		}
-		if pt.X > subImage.Max.X {
-			subImage.Max.X = pt.X
-		}
-		if pt.Y > subImage.Max.Y {
-			subImage.Max.Y = pt.Y
-		}
-	}
-
-	// We have the origin of the image at topLeft, and know its size.
-	// We can now print the image onto a canvas with a blank background.
-	offsetX := subImage.Min.X
-	offsetY := subImage.Min.Y
-	canvas := image.NewRGBA(image.Rect(0, 0, (subImage.Max.X-offsetX)+1, (subImage.Max.Y-offsetY)+1))
-
-	// Translate the points from the global to local coordinate space.
-	translatedPoints := make([]image.Point, len(p.Vertices))
-	for i, p := range p.Vertices {
-		translatedPoints[i] = image.Point{X: p.X - offsetX, Y: p.Y - offsetY}
-	}
-
-	// Create the subpolygon.
-	subpolygon := NewPolygon(p.OutlineColor, translatedPoints...)
+	// Create the outline.
+	subpolygon := NewPolygon(p.OutlineColor, p.Vertices...)
 
 	subpolygonBounds := subpolygon.Bounds()
 	subpolygonHeight := subpolygonBounds.Dy()
 	subpolygonWidth := subpolygonBounds.Dx()
 
+	offsetX, offsetY := p.Vertices[0].X, p.Vertices[0].Y
+	for _, pt := range p.Vertices[1:] {
+		if pt.X < offsetX {
+			offsetX = pt.X
+		}
+		if pt.Y < offsetY {
+			offsetY = pt.Y
+		}
+	}
+
 	// Scan across.
-	for y := 0; y <= subpolygonHeight; y++ {
+	for y := offsetY; y <= subpolygonHeight+offsetY+1; y++ {
 		insidePolygon := false
 		passedLines := map[*Line]interface{}{}
-		for x := 0; x <= subpolygonWidth; x++ {
+		for x := offsetX - 1; x <= subpolygonWidth+offsetX+1; x++ {
 			// Fill the polygon.
 			if insidePolygon {
-				canvas.Set(x, y, p.FillColor)
+				img.Set(x, y, p.FillColor)
 			}
 			for _, line := range subpolygon.Lines {
 				// Skip lines we've already passed
@@ -112,24 +89,16 @@ func (p FilledPolygon) Draw(img draw.Image) {
 
 				lineCrossesY := (line.From.Y < y && line.To.Y >= y) ||
 					(line.To.Y < y && line.From.Y >= y)
-				lineCrossesX := (line.From.X <= x && line.To.X >= x) ||
-					(line.To.X <= x && line.From.X >= x)
 
-				// Only bother looking up if the line crosses the and x y axis.
-				if lineCrossesY && lineCrossesX {
-					if line.ContainsPoint(image.Point{x, y}) {
-						// Mark that we've crossed a boundary
-						insidePolygon = !insidePolygon
-						passedLines[line] = true
-					}
+				if lineCrossesY && line.ContainsPoint(image.Point{x, y}) {
+					// Mark that we've crossed a boundary
+					insidePolygon = !insidePolygon
+					passedLines[line] = true
 				}
 			}
 		}
 	}
 
-	// Draw the borders.
-	subpolygon.Draw(canvas)
-
-	// Copy everything that isn't transparent from the canvas to the target image at the subImage position.
-	draw.Draw(img, subImage, canvas, image.Point{}, draw.Over)
+	// Draw the lines.
+	subpolygon.Draw(img)
 }
