@@ -51,3 +51,11 @@ func TestCircleBounds(t *testing.T) {
 		t.Errorf("expected 2000 diameter, but got %v", c.Bounds().Dy())
 	}
 }
+
+func BenchmarkCircle(b *testing.B) {
+	img := image.NewRGBA(image.Rect(0, 0, 1000, 1000))
+	for i := 0; i < b.N; i++ {
+		p := NewCircle(image.Point{500, 500}, 500, colornames.White)
+		p.Draw(img)
+	}
+}
