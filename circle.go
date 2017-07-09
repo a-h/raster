@@ -26,14 +26,43 @@ func NewCircle(center image.Point, radius int, outlineColor color.RGBA) Circle {
 // Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
 func (c Circle) Draw(img draw.Image) {
 	bounds := image.Rect(c.Center.X-c.Radius-2, c.Center.Y-c.Radius-2, c.Center.X+c.Radius+2, c.Center.Y+c.Radius+2)
-	for ix := bounds.Min.X; ix < bounds.Max.X; ix++ {
-		for iy := bounds.Min.Y; iy < bounds.Max.Y; iy++ {
+	for iy := bounds.Min.Y; iy < bounds.Max.Y; iy++ {
+		// Work out from the left.
+		foundBorder := false
+		for ix := bounds.Min.X; ix < bounds.Max.X-c.Radius; ix++ {
 			width := c.Center.X - ix
 			height := c.Center.Y - iy
 
 			distanceFromCenter := math.Sqrt(float64(((width * width) + (height * height))))
-			if int(distanceFromCenter) == c.Radius {
+			onRadius := int(distanceFromCenter) == c.Radius
+
+			if onRadius {
 				img.Set(ix, iy, c.OutlineColor)
+				foundBorder = true
+			}
+
+			// We've gone past the radius.
+			if !onRadius && foundBorder {
+				break
+			}
+		}
+		// Work in from the right.
+		foundBorder = false
+		for ix := bounds.Max.X; ix > bounds.Max.X-c.Radius; ix-- {
+			width := c.Center.X - ix
+			height := c.Center.Y - iy
+
+			distanceFromCenter := math.Sqrt(float64(((width * width) + (height * height))))
+			onRadius := int(distanceFromCenter) == c.Radius
+
+			if onRadius {
+				img.Set(ix, iy, c.OutlineColor)
+				foundBorder = true
+			}
+
+			// We've gone past the radius.
+			if !onRadius && foundBorder {
+				break
 			}
 		}
 	}
