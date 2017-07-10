@@ -142,3 +142,24 @@ func TestThatTheTurtleCanRotate(t *testing.T) {
 		}
 	}
 }
+
+func TestThatTheTurtleCanMoveBackwards(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 10, 10))
+	o := New(img)
+	o.Forward(10)
+	if !o.Position.Eq(image.Point{10, 0}) {
+		t.Error("expected to be able to move forward")
+	}
+	o.Backward(5)
+	if !o.Position.Eq(image.Point{5, 0}) {
+		t.Error("expected to be able to move backward")
+	}
+	o.Forward(5)
+	if !o.Position.Eq(image.Point{10, 0}) {
+		t.Error("expected angle to be preserved")
+	}
+	o.Backward(10)
+	if !o.Position.Eq(image.Point{0, 0}) {
+		t.Error("expected to be able to move back to the origin")
+	}
+}

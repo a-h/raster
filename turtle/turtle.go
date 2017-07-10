@@ -69,6 +69,12 @@ func (t *Turtle) Forward(amount int) {
 	t.Position = to
 }
 
+func (t *Turtle) Backward(amount int) {
+	t.Rotate(180)
+	t.Forward(amount)
+	t.Rotate(180)
+}
+
 func (t *Turtle) Rotate(degrees float64) {
 	n := t.Angle + degrees
 	if n > 360 {
