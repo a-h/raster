@@ -8,10 +8,162 @@ import (
 	"golang.org/x/image/colornames"
 )
 
-func TestLineContainsPoint(t *testing.T) {
-	l := NewLine(image.Point{0, 0}, image.Point{10, 0}, colornames.White)
-	if !l.ContainsPoint(image.Point{1, 0}) {
-		t.Errorf("Expected point 0,0 to be set")
+func TestLineContainsPointPositive(t *testing.T) {
+	tests := []struct {
+		name     string
+		size     image.Rectangle
+		from, to image.Point
+		expected []image.Point
+	}{
+		{
+			name:     "A point",
+			size:     image.Rect(0, 0, 1, 1),
+			from:     image.Point{1, 1},
+			to:       image.Point{1, 1},
+			expected: []image.Point{image.Point{1, 1}},
+		},
+		{
+			name:     "2px horizontal line (L-R)",
+			size:     image.Rect(0, 0, 10, 1),
+			from:     image.Point{0, 0},
+			to:       image.Point{2, 0},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 0}, image.Point{2, 0}},
+		},
+		{
+			name:     "2px horizontal line (R-L)",
+			size:     image.Rect(0, 0, 10, 1),
+			from:     image.Point{2, 0},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 0}, image.Point{2, 0}},
+		},
+		{
+			name:     "2px vertical line (top-bottom)",
+			size:     image.Rect(0, 0, 10, 0),
+			from:     image.Point{0, 0},
+			to:       image.Point{0, 2},
+			expected: []image.Point{image.Point{0, 0}, image.Point{0, 1}, image.Point{0, 2}},
+		},
+		{
+			name:     "2px vertical line (bottom-top)",
+			size:     image.Rect(0, 0, 10, 0),
+			from:     image.Point{0, 2},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{0, 0}, image.Point{0, 1}, image.Point{0, 2}},
+		},
+		{
+			name:     "45 degrees",
+			size:     image.Rect(0, 0, 2, 2),
+			from:     image.Point{0, 2},
+			to:       image.Point{2, 0},
+			expected: []image.Point{image.Point{0, 2}, image.Point{1, 1}, image.Point{2, 0}},
+		},
+		{
+			name:     "45 degrees (2)",
+			size:     image.Rect(0, 0, 4, 4),
+			from:     image.Point{2, 2},
+			to:       image.Point{4, 0},
+			expected: []image.Point{image.Point{2, 2}, image.Point{3, 1}, image.Point{4, 0}},
+		},
+		{
+			name:     "135 degrees",
+			size:     image.Rect(0, 0, 2, 2),
+			from:     image.Point{0, 0},
+			to:       image.Point{2, 2},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 1}, image.Point{2, 2}},
+		},
+		{
+			name:     "225 degrees",
+			size:     image.Rect(0, 0, 3, 3),
+			from:     image.Point{2, 0},
+			to:       image.Point{0, 2},
+			expected: []image.Point{image.Point{2, 0}, image.Point{1, 1}, image.Point{0, 2}},
+		},
+		{
+			name:     "270 degrees",
+			size:     image.Rect(0, 0, 2, 2),
+			from:     image.Point{2, 2},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{2, 2}, image.Point{1, 1}, image.Point{0, 0}},
+		},
+		{
+			name:     "270 degrees (part)",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{3, 3},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{3, 3}, image.Point{2, 2}, image.Point{1, 1}, image.Point{0, 0}},
+		},
+		{
+			name:     "bottom to top",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 2},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{0, 2}, image.Point{0, 1}, image.Point{0, 0}},
+		},
+		{
+			name:     "right to left upwards diagonal",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{3, 3},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{3, 3}, image.Point{2, 2}, image.Point{1, 1}, image.Point{0, 0}},
+		},
+		{
+			name:     "left to right upwards diagonal",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 3},
+			to:       image.Point{3, 0},
+			expected: []image.Point{image.Point{0, 3}, image.Point{1, 2}, image.Point{2, 1}, image.Point{3, 0}},
+		},
+		{
+			name:     "left to right downwards diagonal",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{3, 0},
+			to:       image.Point{0, 3},
+			expected: []image.Point{image.Point{0, 3}, image.Point{1, 2}, image.Point{2, 1}, image.Point{3, 0}},
+		},
+		{
+			name:     "right to left downwards diagonal",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 0},
+			to:       image.Point{3, 3},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 1}, image.Point{2, 2}, image.Point{3, 3}},
+		},
+		{
+			name:     "sharp slope in y",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 0},
+			to:       image.Point{1, 6},
+			expected: []image.Point{image.Point{0, 0}, image.Point{0, 1}, image.Point{0, 2}, image.Point{0, 3}, image.Point{0, 4}, image.Point{0, 5}, image.Point{1, 6}},
+		},
+		{
+			name:     "sharp slope in y (reverse)",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{1, 6},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{0, 0}, image.Point{0, 1}, image.Point{0, 2}, image.Point{0, 3}, image.Point{0, 4}, image.Point{0, 5}, image.Point{1, 6}},
+		},
+		{
+			name:     "sharp slope in x",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 0},
+			to:       image.Point{6, 1},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 0}, image.Point{2, 0}, image.Point{3, 0}, image.Point{4, 0}, image.Point{5, 0}, image.Point{6, 1}},
+		},
+		{
+			name:     "sharp slope in x (reversed)",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{6, 1},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 0}, image.Point{2, 0}, image.Point{3, 0}, image.Point{4, 0}, image.Point{5, 0}, image.Point{6, 1}},
+		},
+	}
+
+	for _, test := range tests {
+		l := NewLine(test.from, test.to, colornames.White)
+		for _, e := range test.expected {
+			if !l.ContainsPoint(e) {
+				t.Errorf("%s: expected point %v to be set, but it wasn't", test.name, e)
+			}
+		}
 	}
 }
 
@@ -106,6 +258,76 @@ func TestDrawLines(t *testing.T) {
 			to:       image.Point{0, 0},
 			expected: []image.Point{image.Point{0, 2}, image.Point{0, 1}, image.Point{0, 0}},
 		},
+		{
+			name:     "right to left upwards diagonal",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{3, 3},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{3, 3}, image.Point{2, 2}, image.Point{1, 1}, image.Point{0, 0}},
+		},
+		{
+			name:     "left to right upwards diagonal",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 3},
+			to:       image.Point{3, 0},
+			expected: []image.Point{image.Point{0, 3}, image.Point{1, 2}, image.Point{2, 1}, image.Point{3, 0}},
+		},
+		{
+			name:     "left to right downwards diagonal",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{3, 0},
+			to:       image.Point{0, 3},
+			expected: []image.Point{image.Point{0, 3}, image.Point{1, 2}, image.Point{2, 1}, image.Point{3, 0}},
+		},
+		{
+			name:     "right to left downwards diagonal",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 0},
+			to:       image.Point{3, 3},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 1}, image.Point{2, 2}, image.Point{3, 3}},
+		},
+		{
+			name:     "sharp slope in y",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 0},
+			to:       image.Point{1, 6},
+			expected: []image.Point{image.Point{0, 0}, image.Point{0, 1}, image.Point{0, 2}, image.Point{0, 3}, image.Point{0, 4}, image.Point{0, 5}, image.Point{1, 6}},
+		},
+		{
+			name:     "sharp slope in y (reverse)",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{1, 6},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{0, 0}, image.Point{0, 1}, image.Point{0, 2}, image.Point{0, 3}, image.Point{0, 4}, image.Point{0, 5}, image.Point{1, 6}},
+		},
+		{
+			name:     "sharp slope in x",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{0, 0},
+			to:       image.Point{6, 1},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 0}, image.Point{2, 0}, image.Point{3, 0}, image.Point{4, 0}, image.Point{5, 0}, image.Point{6, 1}},
+		},
+		{
+			name:     "sharp slope in x (reversed)",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{6, 1},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 0}, image.Point{2, 0}, image.Point{3, 0}, image.Point{4, 0}, image.Point{5, 0}, image.Point{6, 1}},
+		},
+		{
+			name:     "sharp slope in y (up-left)",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{6, 6},
+			to:       image.Point{5, 0},
+			expected: []image.Point{image.Point{5, 0}, image.Point{5, 1}, image.Point{5, 2}, image.Point{5, 3}, image.Point{5, 4}, image.Point{5, 5}, image.Point{6, 6}},
+		},
+		{
+			name:     "sharp slope in y (extra)",
+			size:     image.Rect(0, 0, 10, 10),
+			from:     image.Point{6, 6},
+			to:       image.Point{7, 0},
+			expected: []image.Point{image.Point{6, 1}, image.Point{6, 2}, image.Point{6, 3}, image.Point{6, 4}, image.Point{6, 5}, image.Point{7, 0}, image.Point{6, 6}},
+		},
 	}
 
 	for _, test := range tests {
@@ -179,6 +401,11 @@ func TestLineBoundsFunction(t *testing.T) {
 			from:     image.Point{100, 100},
 			to:       image.Point{500, 500},
 			expected: image.Rect(0, 0, 400, 400),
+		},
+		{
+			from:     image.Point{10, 10},
+			to:       image.Point{0, 0},
+			expected: image.Rect(0, 0, 10, 10),
 		},
 	}
 
