@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"testing"
 
+	"reflect"
+
 	"golang.org/x/image/colornames"
 )
 
@@ -430,5 +432,32 @@ func BenchmarkLineContainsPoint(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		l := NewLine(image.Point{0, 0}, image.Point{1000, 1000}, colornames.White)
 		l.ContainsPoint(image.Point{0, 0})
+	}
+}
+
+func TestPointsFunction(t *testing.T) {
+	tests := []struct {
+		from     image.Point
+		to       image.Point
+		expected []image.Point
+	}{
+		{
+			from:     image.Point{0, 0},
+			to:       image.Point{0, 0},
+			expected: []image.Point{image.Point{0, 0}},
+		},
+		{
+			from:     image.Point{0, 0},
+			to:       image.Point{3, 0},
+			expected: []image.Point{image.Point{0, 0}, image.Point{1, 0}, image.Point{2, 0}, image.Point{3, 0}},
+		},
+	}
+
+	for _, test := range tests {
+		l := NewLine(test.from, test.to, colornames.White)
+		actual := l.Points()
+		if !reflect.DeepEqual(test.expected, actual) {
+			t.Errorf("For line %v, expected to contain %v, but got %v", l.String(), test.expected, actual)
+		}
 	}
 }
