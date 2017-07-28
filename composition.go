@@ -2,6 +2,7 @@ package raster
 
 import (
 	"image"
+	"image/color"
 	"image/draw"
 
 	"github.com/a-h/raster/affine"
@@ -48,11 +49,16 @@ func (c *Composition) Draw(img draw.Image) {
 	// Apply the composition's transformations each time.
 	t := affine.NewTranslationTransformation(c.Position.X, c.Position.Y)
 	t = t.Combine(c.Transformation)
+
+	transparent := color.RGBA{0, 0, 0, 0}
 	for y := 0; y < c.cache.Bounds().Dy(); y++ {
 		for x := 0; x < c.cache.Bounds().Dx(); x++ {
-			transformedPoint := t.Apply(image.Point{x, y})
+			color := c.cache.At(x, y)
 
-			img.Set(transformedPoint.X, transformedPoint.Y, c.cache.At(x, y))
+			if color != transparent {
+				transformedPoint := t.Apply(image.Point{x, y})
+				img.Set(transformedPoint.X, transformedPoint.Y, color)
+			}
 		}
 	}
 }

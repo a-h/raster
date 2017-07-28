@@ -3,6 +3,8 @@ package affine
 import (
 	"image"
 	"math"
+
+	"github.com/a-h/round"
 )
 
 // Transformation represents a 3x3 matrix used to carry out an affine transform.
@@ -61,12 +63,21 @@ func NewTranslationTransformation(x, y int) Transformation {
 	})
 }
 
+// NewReflectionTransformation mirrors the image.
+func NewReflectionTransformation() Transformation {
+	return NewTransformation([]float64{
+		1, 0, 0,
+		0, -1, 0,
+	})
+}
+
+const degreeToRad = math.Pi / float64(180)
+
 // NewRotationTransformation creates a transformation which rotates by the specified amount.
 func NewRotationTransformation(degrees float64) Transformation {
-	radians := math.Pi / (float64(180) / degrees) // math.Pi represents 180 degrees
+	radians := degrees * degreeToRad
 
-	sin := math.Sin(radians)
-	cos := math.Cos(radians)
+	sin, cos := math.Sincos(radians)
 	// Because the coordinate space is the opposite to usual maths, the
 	// matrix is inverted for the clockwise transform we're doing.
 	return NewTransformation([]float64{
@@ -86,7 +97,7 @@ func (t Transformation) Apply(point image.Point) image.Point {
 	x1 := (t.a * x) + (t.b * y) + (t.c * z)
 	y1 := (t.p * x) + (t.q * y) + (t.r * z)
 
-	return image.Point{int(x1), int(y1)}
+	return image.Point{int(round.ToEven(x1, 0)), int(round.ToEven(y1, 0))}
 }
 
 // Combine combines two transformations into a single operation.
