@@ -84,20 +84,20 @@ func TestCompositionWithAffineTransformation(t *testing.T) {
 	img2 := image.NewRGBA(image.Rect(0, 0, 40, 40))
 	composition.Draw(img2)
 
-	topLeft := image.Point{25, 7}
-	if img.At(topLeft.X, topLeft.Y) != colornames.White {
+	topLeft := image.Point{24, 6}
+	if img2.At(topLeft.X, topLeft.Y) != colornames.White {
 		t.Errorf("Top left corner was not in correct position")
 	}
-	topRight := image.Point{32, 7}
-	if img.At(topRight.X, topRight.Y) != colornames.White {
+	topRight := image.Point{31, 9}
+	if img2.At(topRight.X, topRight.Y) != colornames.White {
 		t.Errorf("Top right corner was not in correct position")
 	}
-	bottomLeft := image.Point{25, 15}
-	if img.At(bottomLeft.X, bottomLeft.Y) != colornames.White {
+	bottomLeft := image.Point{24, 14}
+	if img2.At(bottomLeft.X, bottomLeft.Y) != colornames.White {
 		t.Errorf("Bottom left corner was not in correct position")
 	}
-	bottomRight := image.Point{32, 15}
-	if img.At(bottomRight.X, bottomRight.Y) != colornames.White {
+	bottomRight := image.Point{31, 14}
+	if img2.At(bottomRight.X, bottomRight.Y) != colornames.White {
 		t.Errorf("Bottom right corner was not in correct position")
 	}
 }
