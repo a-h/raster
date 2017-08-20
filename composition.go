@@ -2,10 +2,10 @@ package raster
 
 import (
 	"image"
-	"image/color"
 	"image/draw"
 
 	"github.com/a-h/raster/affine"
+	"github.com/a-h/raster/sparse"
 )
 
 // Composable represents a shape which can be combined with other shapes.
@@ -21,7 +21,7 @@ type Composable interface {
 type Composition struct {
 	Position       image.Point
 	Components     []Composable
-	cache          *image.RGBA
+	cache          *sparse.Image
 	Transformation affine.Transformation
 }
 
@@ -40,7 +40,7 @@ func (c *Composition) Draw(img draw.Image) {
 	// Draw on a temporary canvas.
 	// Cache the base image.
 	if c.cache == nil {
-		c.cache = image.NewRGBA(c.Bounds())
+		c.cache = sparse.NewImage(c.Bounds())
 		for _, component := range c.Components {
 			component.Draw(c.cache)
 		}
@@ -50,16 +50,9 @@ func (c *Composition) Draw(img draw.Image) {
 	t := affine.NewTranslationTransformation(c.Position.X, c.Position.Y)
 	t = t.Combine(c.Transformation)
 
-	transparent := color.RGBA{0, 0, 0, 0}
-	for y := 0; y < c.cache.Bounds().Dy(); y++ {
-		for x := 0; x < c.cache.Bounds().Dx(); x++ {
-			color := c.cache.At(x, y)
-
-			if color != transparent {
-				transformedPoint := t.Apply(image.Point{x, y})
-				img.Set(transformedPoint.X, transformedPoint.Y, color)
-			}
-		}
+	for position, color := range c.cache.Drawn {
+		transformedPoint := t.Apply(position)
+		img.Set(transformedPoint.X, transformedPoint.Y, color)
 	}
 }
 
