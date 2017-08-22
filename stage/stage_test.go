@@ -6,6 +6,8 @@ import (
 	"image/draw"
 	"testing"
 
+	"github.com/a-h/raster/sparse"
+
 	"golang.org/x/image/colornames"
 )
 
@@ -94,5 +96,86 @@ func TestModifyingTheFrameManually(t *testing.T) {
 	empty := color.RGBA{}
 	if stg.At(50, 50) != empty {
 		t.Errorf("After drawing, the current frame should be replaced with the new frame")
+	}
+}
+
+func TestAnimationDeltas(t *testing.T) {
+	r := colornames.Red
+	g := colornames.Green
+	// b := colornames.Blue
+	x := color.RGBA{}
+
+	tests := []struct {
+		name        string
+		firstFrame  []color.Color
+		secondFrame []color.Color
+	}{
+		{
+			name: "move red",
+			firstFrame: []color.Color{
+				r, r, r, x, x,
+			},
+			secondFrame: []color.Color{
+				x, x, r, r, r,
+			},
+		},
+		{
+			name: "switch red to green",
+			firstFrame: []color.Color{
+				r, r, r, x, x,
+			},
+			secondFrame: []color.Color{
+				g, g, g, x, x,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		canvas := sparse.NewImage(image.Rect(0, 0, 5, 0))
+
+		stg := New(image.NewRGBA(image.Rect(0, 0, 5, 0)))
+
+		// Draw the first frame of animation.
+		drawPixels(test.firstFrame, stg.NextFrame)
+
+		// Commit the first frame.
+		stg.Draw(canvas)
+
+		// Draw the second frame.
+		drawPixels(test.secondFrame, stg.NextFrame)
+
+		// Commit the second frame.
+		stg.Draw(canvas)
+
+		// Confirm the final results match expectations.
+		actual := getRow(canvas)
+
+		if !equal(actual, test.secondFrame) {
+			t.Errorf("%v: expected %v to be drawn, but got %v", test.name, test.secondFrame, actual)
+		}
+	}
+}
+
+func getRow(img image.Image) []color.Color {
+	width := img.Bounds().Dx()
+	rv := make([]color.Color, width)
+	for x := 0; x < width; x++ {
+		rv[x] = img.At(x, 0)
+	}
+	return rv
+}
+
+func equal(actual []color.Color, expected []color.Color) bool {
+	for x := 0; x < len(actual); x++ {
+		if expected[x] != actual[x] {
+			return false
+		}
+	}
+	return true
+}
+
+func drawPixels(pixels []color.Color, img draw.Image) {
+	for i, p := range pixels {
+		img.Set(i, 0, p)
 	}
 }

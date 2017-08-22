@@ -47,12 +47,9 @@ func (c *Composition) Draw(img draw.Image) {
 	}
 
 	// Apply the composition's transformations each time.
-	t := affine.NewTranslationTransformation(c.Position.X, c.Position.Y)
-	t = t.Combine(c.Transformation)
-
 	for position, color := range c.cache.Drawn {
-		transformedPoint := t.Apply(position)
-		img.Set(transformedPoint.X, transformedPoint.Y, color)
+		transformedPoint := c.Transformation.Apply(position)
+		img.Set(transformedPoint.X+c.Position.X, transformedPoint.Y+c.Position.Y, color)
 	}
 }
 

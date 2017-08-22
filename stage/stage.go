@@ -40,12 +40,12 @@ func (stg *Stage) ResetNextFrame() {
 // At the end, the ToDraw field is wiped. It's assumed that nothing else alters the img parameter other
 // than the stage itself.
 func (stg *Stage) Draw(img draw.Image) (redraw bool) {
-	// If it's the first draw, draw the entire backdrop.
+	// If it's the first draw, draw the entire backdrop onto the image.
 	if !stg.frameDrawn {
 		b := stg.Backdrop.Bounds()
 		for y := 0; y < b.Dy(); y++ {
 			for x := 0; x < b.Dx(); x++ {
-				stg.CurrentFrame.Set(x, y, stg.Backdrop.At(x, y))
+				img.Set(x, y, stg.Backdrop.At(x, y))
 			}
 		}
 		stg.frameDrawn = true
@@ -53,14 +53,17 @@ func (stg *Stage) Draw(img draw.Image) (redraw bool) {
 		redraw = true
 	}
 
-	// Only undraw when ToDraw isn't going to set it to another (or the same) color.
-	overwrites := make(map[image.Point]color.Color)
-	for p := range stg.CurrentFrame.Drawn {
-		if drawnColor, pixelWillBeRedrawn := stg.NextFrame.Drawn[p]; pixelWillBeRedrawn {
-			// It could be overwritten.
-			overwrites[p] = drawnColor
+	// Set everything that's already been drawn back to the background color, but only
+	// only when the NextFrame isn't going to set it to another (or the same) color.
+	pixelsToSkip := make(map[image.Point]interface{})
+	for p, existingColor := range stg.CurrentFrame.Drawn {
+		if newColor, pixelWillBeRedrawn := stg.NextFrame.Drawn[p]; pixelWillBeRedrawn {
+			// The next pixel is the same color anyway, so skip it.
+			if newColor == existingColor {
+				pixelsToSkip[p] = true
+			}
 		} else {
-			// It needs to be set back to the backdrop color.
+			// Set the pixel back to the backdrop color.
 			backgroundColor := stg.Backdrop.At(p.X, p.Y)
 			img.Set(p.X, p.Y, backgroundColor)
 		}
@@ -70,15 +73,13 @@ func (stg *Stage) Draw(img draw.Image) (redraw bool) {
 	for p, c := range stg.NextFrame.Drawn {
 		// If it's already been drawn, or the color is the same as the backdrop, don't ask
 		// the image to set it again.
-		drawnColor, hasBeenDrawn := overwrites[p]
-		if !hasBeenDrawn {
-			drawnColor = stg.Backdrop.At(p.X, p.Y)
-		}
-		if drawnColor != c {
+		if _, shouldSkip := pixelsToSkip[p]; !shouldSkip {
 			img.Set(p.X, p.Y, c)
 		}
 	}
 
+	// Copy pixels from the next frame to the current frame to keep a representation
+	// of what should be on the image.
 	stg.ResetCurrentFrame()
 	for p, c := range stg.NextFrame.Drawn {
 		stg.CurrentFrame.Drawn[p] = c
