@@ -16,7 +16,7 @@ type Composable interface {
 	Bounds() image.Rectangle
 }
 
-// A Composition has a position, components whic make it up, and a transformation
+// Composition returns the position and components which make it up, and a transformation
 // that can be applied to it to move, scale, or rotate all of the elements.
 type Composition struct {
 	Position       image.Point
