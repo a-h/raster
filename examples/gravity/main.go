@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/draw"
 	"os"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 
@@ -75,10 +76,11 @@ func run() {
 		Background: background,
 		Actors:     []actor.Actor{ball},
 		Physics: world.Physics{
-			Gravity: 5,
+			Gravity: 1,
 		},
 		Target:    img,
 		Publisher: p,
+		Tick:      time.Millisecond * 5,
 	}
 
 	logrus.Debugf("starting world")

@@ -18,6 +18,7 @@ type World struct {
 	Physics    Physics
 	Target     draw.Image
 	Publisher  Publisher
+	Tick       time.Duration
 }
 
 type Publisher interface {
@@ -78,7 +79,10 @@ func (w *World) Run(stopper <-chan bool) {
 
 			logrus.Debugf("publishing frame")
 			w.Publisher.Publish(w.Target)
-			logrus.Debugf("rendered frame in %v", time.Now().Sub(start))
+			duration := time.Now().Sub(start)
+			remaining := w.Tick - duration
+			logrus.Debugf("rendered frame in %v of budget %v, %v remaining", duration, w.Tick, remaining)
+			time.Sleep(remaining)
 		}
 	}
 }
