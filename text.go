@@ -28,7 +28,7 @@ func NewText(position image.Point, text string, c color.RGBA) Text {
 }
 
 // Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
-func (t Text) Draw(img draw.Image) {
+func (t Text) Draw(img draw.Image) image.Rectangle {
 	// See https://stackoverflow.com/questions/38299930/how-to-add-a-simple-text-label-to-an-image-in-go
 	point := fixed.Point26_6{
 		X: fixed.I(t.Position.X),
@@ -43,6 +43,10 @@ func (t Text) Draw(img draw.Image) {
 	}
 
 	d.DrawString(t.Text)
+
+	b, _ := d.BoundString(t.Text)
+	return image.Rect(t.Position.X+b.Min.X.Round(), t.Position.Y+b.Min.Y.Round(),
+		t.Position.X+b.Max.X.Round(), t.Position.Y+b.Max.Y.Round())
 }
 
 // Bounds returns the size of the object.

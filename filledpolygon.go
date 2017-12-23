@@ -54,7 +54,7 @@ func (p FilledPolygon) Bounds() image.Rectangle {
 }
 
 // Draw draws the filled polygon onto the image.
-func (p FilledPolygon) Draw(img draw.Image) {
+func (p FilledPolygon) Draw(img draw.Image) image.Rectangle {
 	// Create the outline.
 	subpolygon := NewPolygon(p.OutlineColor, p.Vertices...)
 
@@ -100,5 +100,5 @@ func (p FilledPolygon) Draw(img draw.Image) {
 	}
 
 	// Draw the lines.
-	subpolygon.Draw(img)
+	return subpolygon.Draw(img)
 }

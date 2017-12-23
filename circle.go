@@ -24,7 +24,7 @@ func NewCircle(center image.Point, radius int, outlineColor color.RGBA) Circle {
 }
 
 // Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
-func (c Circle) Draw(img draw.Image) {
+func (c Circle) Draw(img draw.Image) image.Rectangle {
 	bounds := image.Rect(c.Center.X-c.Radius-2, c.Center.Y-c.Radius-2, c.Center.X+c.Radius+2, c.Center.Y+c.Radius+2)
 	for iy := bounds.Min.Y; iy < bounds.Max.Y; iy++ {
 		// Work out from the left.
@@ -66,6 +66,7 @@ func (c Circle) Draw(img draw.Image) {
 			}
 		}
 	}
+	return bounds
 }
 
 // Bounds is the size of the object.

@@ -55,12 +55,13 @@ func (l *Line) ContainsPoint(p image.Point) bool {
 }
 
 // Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
-func (l *Line) Draw(img draw.Image) {
+func (l *Line) Draw(img draw.Image) image.Rectangle {
 	drawer := func(x, y int) bool {
 		img.Set(x, y, l.OutlineColor)
 		return true
 	}
 	line(l.From.X, l.From.Y, l.To.X, l.To.Y, drawer)
+	return image.Rect(l.From.X, l.From.Y, l.To.X, l.To.Y)
 }
 
 func line(fromX, fromY int, toX, toY int, f func(x, y int) bool) {

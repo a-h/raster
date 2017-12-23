@@ -29,7 +29,7 @@ func testColor(name string, t *testing.T, actual, expected color.Color) {
 }
 
 func TestSquareSize(t *testing.T) {
-	s := NewSquare(image.Point{}, 100, colornames.White)
+	s := NewSquare(image.ZP, 100, colornames.White)
 	if s.Bounds().Dx() != 100 {
 		t.Errorf("expected a width of 100, but got %v", s.Bounds().Dx())
 	}

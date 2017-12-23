@@ -25,7 +25,7 @@ func NewFilledCircle(center image.Point, radius int, outlineColor color.RGBA, fi
 }
 
 // Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
-func (c FilledCircle) Draw(img draw.Image) {
+func (c FilledCircle) Draw(img draw.Image) image.Rectangle {
 	bounds := image.Rect(c.Center.X-c.Radius-2, c.Center.Y-c.Radius-2, c.Center.X+c.Radius+2, c.Center.Y+c.Radius+2)
 	for ix := bounds.Min.X; ix < bounds.Max.X; ix++ {
 		for iy := bounds.Min.Y; iy < bounds.Max.Y; iy++ {
@@ -41,4 +41,5 @@ func (c FilledCircle) Draw(img draw.Image) {
 			}
 		}
 	}
+	return bounds
 }

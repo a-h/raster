@@ -15,7 +15,7 @@ func TestBounds(t *testing.T) {
 	}{
 		{
 			// 10 x 10 square
-			p:        NewPolygon(colornames.White, image.Point{}, image.Point{10, 0}, image.Point{10, 10}, image.Point{0, 10}),
+			p:        NewPolygon(colornames.White, image.ZP, image.Point{10, 0}, image.Point{10, 10}, image.Point{0, 10}),
 			expected: image.Rect(0, 0, 10, 10),
 		},
 		{

@@ -53,8 +53,9 @@ func (p Polygon) Bounds() image.Rectangle {
 }
 
 // Draw draws the element to the img, img could be an image.RGBA* or screen buffer.
-func (p Polygon) Draw(img draw.Image) {
+func (p Polygon) Draw(img draw.Image) image.Rectangle {
 	for _, l := range p.Lines {
 		l.Draw(img)
 	}
+	return p.Bounds()
 }

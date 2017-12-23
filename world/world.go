@@ -2,22 +2,26 @@ package world
 
 import (
 	"image"
+	"image/draw"
+	"time"
 
 	"github.com/Sirupsen/logrus"
-	"golang.org/x/exp/shiny/screen"
 
 	"github.com/a-h/raster/actor"
 	"github.com/a-h/raster/affine"
-	"github.com/a-h/raster/stage"
 )
 
 // World represents a world where things happen. It controls gravity, space and time.
 type World struct {
-	Actors  []actor.Actor
-	Stage   *stage.Stage
-	Physics Physics
-	Buffer  screen.Buffer
-	Window  screen.Window
+	Background draw.Image
+	Actors     []actor.Actor
+	Physics    Physics
+	Target     draw.Image
+	Publisher  Publisher
+}
+
+type Publisher interface {
+	Publish(img draw.Image)
 }
 
 type Physics struct {
@@ -25,7 +29,16 @@ type Physics struct {
 }
 
 func (w *World) Run(stopper <-chan bool) {
-	bufferImage := w.Buffer.RGBA()
+	logrus.Debugf("drawing background")
+	draw.Draw(w.Target, w.Target.Bounds(), w.Background, image.ZP, draw.Src)
+	w.Publisher.Publish(w.Target)
+
+	// Store the locations of each sprite.
+	logrus.Debugf("storing sprite locations")
+	areas := make([]image.Rectangle, len(w.Actors))
+	for i, a := range w.Actors {
+		areas[i] = a.Composition().Bounds()
+	}
 
 	for {
 		select {
@@ -33,9 +46,22 @@ func (w *World) Run(stopper <-chan bool) {
 			logrus.Debug("received stop signal")
 			return
 		default:
+			logrus.Debugf("drawing background")
+
+			start := time.Now()
+
+			for _, a := range areas {
+				// Draw the background over the current location of the actors.
+				logrus.Debugf("drawing background over %v", a)
+				a = image.Rect(a.Min.X, a.Min.Y, a.Max.X, a.Max.Y)
+				draw.Draw(w.Target, a, w.Background, a.Min, draw.Src)
+			}
+
 			// Update the display and sleep.
-			for _, a := range w.Actors {
-				newPosition := a.State().Update(w.Stage.Bounds(), a.Composition().Bounds(), a.Composition().Position, w.Physics.Gravity)
+			logrus.Debugf("drawing %d actors", len(w.Actors))
+			for i, a := range w.Actors {
+				newPosition := a.State().Update(w.Target.Bounds(), a.Composition().Bounds(), a.Composition().Position, w.Physics.Gravity)
+				logrus.Debugf("moving actor from %v to %v", a.Composition().Position, newPosition)
 
 				centerX := a.Composition().Bounds().Dx() / 2
 				centerY := a.Composition().Bounds().Dy() / 2
@@ -45,13 +71,14 @@ func (w *World) Run(stopper <-chan bool) {
 				a.Composition().Transformation = moveToCenter.Combine(rotate).Combine(moveBack)
 				a.Composition().Position = newPosition
 
-				a.Composition().Draw(w.Stage.NextFrame)
+				logrus.Debugf("drawing target")
+				areas[i] = a.Composition().Draw(w.Target)
+				logrus.Debugf("drawn actor at %v", areas[i])
 			}
 
-			w.Stage.Draw(bufferImage)
-			w.Window.Upload(image.Point{0, 0}, w.Buffer, bufferImage.Bounds())
-			w.Window.Publish()
-			logrus.Debugf("Rendered frame.\n")
+			logrus.Debugf("publishing frame")
+			w.Publisher.Publish(w.Target)
+			logrus.Debugf("rendered frame in %v", time.Now().Sub(start))
 		}
 	}
 }
